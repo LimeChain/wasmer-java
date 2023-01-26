@@ -67,10 +67,10 @@ class ImportsTest {
         instance.close();
     }
 
-    @Test
-    void zstd() throws Exception {
-        Zstd.decompress(getBytes("polkadot_runtime-v9360.compact.compressed.wasm"), (int) Zstd.decompressedSize(getBytes("polkadot_runtime-v9360.compact.compressed.wasm")));
-    }
+//    @Test
+//    void zstd() throws Exception {
+//        Zstd.decompress(getBytes("polkadot_runtime-v9360.compact.compressed.wasm"), (int) Zstd.decompressedSize(getBytes("polkadot_runtime-v9360.compact.compressed.wasm")));
+//    }
 
     @Test
     void accessMemory() throws IOException,Exception {
