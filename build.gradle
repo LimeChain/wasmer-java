@@ -27,10 +27,10 @@ sourceSets {
     }
     test {
         java {
-            srcDirs = ["tests"]
+            srcDirs = ["test/org"]
         }
         resources {
-            srcDirs = ["tests/resources"]
+            srcDirs = ["test/resources"]
         }
     }
 }
@@ -51,7 +51,10 @@ repositories {
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+    testImplementation("org.junit.platform:junit-platform-commons:1.6.0")
+    testImplementation("org.junit.platform:junit-platform-engine:1.6.0")
+    testImplementation("com.github.luben:zstd-jni:1.5.2-5")
 }
 
 test {
@@ -79,10 +82,6 @@ String inferWasmerJarAppendix() {
     switch (arch.getName()) {
         case ["x86_64", "x64", "x86-64"]:
             arch_name = "amd64"
-            break;
-
-        case ["aarch64", "arm-v8"]:
-            arch_name = "arm64"
             break;
 
         default:
@@ -160,75 +159,6 @@ jar.outputs.upToDateWhen { false }
 // We build the integration before running any test
 compileTestJava.dependsOn buildRust
 processResources.dependsOn copyAllArtifacts
-
-// Publishing on bintray.
-task uploadToBintray {
-    dependsOn bintrayUpload
-
-    apply plugin: "maven"
-    apply plugin: "maven-publish"
-
-    /// First, set up a POM configuration.
-    def pomConfig = {
-        name "wasmer-jni"
-        packaging "jar"
-        description "Wasmer JNI is a library to execute WebAssembly binaries"
-        url "https://wasmer.io"
-        scm {
-            connection "scm:git:git@github.com:wasmerio/wasmer-java.git"
-            developerConnection "scm:git:git@github.com:wasmerio/wasmer-java.git"
-            url "git@github.com:wasmerio/wasmer-java.git"
-        }
-        licenses {
-            license {
-                name "MIT License"
-                url "https://opensource.org/licenses/MIT"
-            }
-        }
-        developers {
-            developer {
-                id "hywan"
-                name "Ivan Enderlin"
-                url "https://github.com/Hywan"
-            }
-        }
-    }
-
-    publishing {
-        publications {
-            MyPublication(MavenPublication) {
-                from components.java
-                groupId "org.wasmer"
-                artifactId "wasmer-jni-" + inferWasmerJarAppendix()
-                version project.version
-
-                artifacts {
-                    archives jar
-                }
-
-                pom.withXml {
-                    def root = asNode()
-                    root.children().last() + pomConfig
-                }
-            }
-        }
-    }
-
-    /// Second, set up Bintray.
-    bintray {
-        user = System.getenv("BINTRAY_USER")
-        key = System.getenv("BINTRAY_API_KEY")
-        publications = ["MyPublication"]
-        pkg {
-            repo = "wasmer-jni"
-            name = "wasmer-jni"
-            licenses = ["MIT"]
-            vcsUrl = "https://github.com/wasmerio/wasmer-java.git"
-            userOrg = "wasmer"
-            desc = "Wasmer JNI is a library to execute WebAssembly binaries"
-        }
-    }
-}
 
 // Local Variables:
 // mode: java

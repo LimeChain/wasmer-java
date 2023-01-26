@@ -23,6 +23,7 @@ class MemoryExample {
         String result = new String(data);
 
         assert result.equals("Hello, World!");
+        System.out.println("here");
 
         instance.close();
     }
