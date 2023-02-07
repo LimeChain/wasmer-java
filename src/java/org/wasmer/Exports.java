@@ -32,7 +32,7 @@ public class Exports {
      * @param instance Instance object which holds the exports object.
      */
     protected Exports(Instance instance) {
-        this.inner = new HashMap<String, Export>();
+        this.inner = new HashMap<>();
         this.instance = instance;
     }
 

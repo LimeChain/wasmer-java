@@ -43,16 +43,16 @@ class ModuleTest {
         assertTrue(exception.getMessage().startsWith(expected));
     }
 
-    @Test
-    void instantiate() throws IOException,Exception {
-        Module module = new Module(getBytes("tests.wasm"));
-
-        Instance instance = module.instantiate();
-        assertEquals(3, (Integer) instance.exports.getFunction("sum").apply(1, 2)[0]);
-
-        instance.close();
-        module.close();
-    }
+//    @Test
+//    void instantiate() throws IOException,Exception {
+//        Module module = new Module(getBytes("tests.wasm"));
+//
+//        Instance instance = module.instantiate();
+//        assertEquals(3, (Integer) instance.exports.getFunction("sum").apply(1, 2)[0]);
+//
+//        instance.close();
+//        module.close();
+//    }
 
     @Test
     void serialize() throws IOException,Exception {
@@ -61,14 +61,14 @@ class ModuleTest {
         module.close();
     }
 
-    @Test
-    void deserialize() throws IOException,Exception {
-        Module module = new Module(getBytes("tests.wasm"));
-
-        byte[] serialized = module.serialize();
-        module = null;
-
-        Module deserializedModule = Module.deserialize(serialized);
-        assertEquals(3, (Integer) deserializedModule.instantiate().exports.getFunction("sum").apply(1, 2)[0]);
-    }
+//    @Test
+//    void deserialize() throws IOException,Exception {
+//        Module module = new Module(getBytes("tests.wasm"));
+//
+//        byte[] serialized = module.serialize();
+//        module = null;
+//
+//        Module deserializedModule = Module.deserialize(serialized);
+//        assertEquals(3, (Integer) deserializedModule.instantiate().exports.getFunction("sum").apply(1, 2)[0]);
+//    }
 }

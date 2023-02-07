@@ -9,7 +9,7 @@ use jni::{
     JNIEnv,
 };
 use std::{collections::HashMap, panic};
-use std::collections::hash_map::Entry;
+use std::convert::TryFrom;
 use wasmer::{ImportObject, NamedResolver, ChainableNamedResolver, Exports, Function, FunctionType, Type, Value, Memory, MemoryType};
 use wasmer_wasi::WasiState;
 
@@ -32,15 +32,27 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
     env: JNIEnv,
     _class: JClass,
     spec: JObject,
+    memory: JObject,
     module: jptr,
 ) -> jptr {
-    println!("asdf");
     let output = panic::catch_unwind(|| {
         let mut namespaces = HashMap::<String, _>::new();
         let mut import_object = ImportObject::new();
         let module: &Module = Into::<Pointer<Module>>::into(module).borrow();
         let store = module.module.store();
         let spec = env.get_list(spec).unwrap();
+
+        let memory_type = if !memory.is_null() {
+            let min_pages = env.get_field(memory, "minPages", "I").unwrap().i().unwrap();
+            MemoryType::new(u32::try_from(min_pages).unwrap(), None, false)
+        } else {
+            unimplemented!();
+        };
+        let memory_namespace = env.get_field(memory, "namespace", "Ljava/lang/String;").unwrap().l().unwrap();
+        let memory_namespace = env.get_string(memory_namespace.into()).unwrap().to_str().unwrap().to_owned();
+        let memory_name = env.get_field(memory, "name", "Ljava/lang/String;").unwrap().l().unwrap();
+        let memory_name = env.get_string(memory_name.into()).unwrap().to_str().unwrap().to_owned();
+
         for import in spec.iter().unwrap() {
             let namespace = env.get_field(import, "namespace", "Ljava/lang/String;").unwrap().l().unwrap();
             let namespace = env.get_string(namespace.into()).unwrap().to_str().unwrap().to_string();
@@ -91,15 +103,13 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
             }));
         }
 
-        if namespaces.contains_key("env") {
-            let env_namespace = namespaces.entry("env".to_string());
-            env_namespace.or_insert_with(|| Exports::new()).insert("memory", Memory::new(&store, MemoryType::new(20, None, false)).unwrap());
-            println!("Env namespaces {:?}", namespaces.get("env").unwrap());
+        if namespaces.contains_key(memory_namespace.as_str()) {
+            let env_namespace = namespaces.entry(memory_namespace);
+            env_namespace.or_insert_with(|| Exports::new()).insert(memory_name, Memory::new(&store, memory_type).unwrap());
         } else {
             let mut exports = Exports::new();
-            //needs to be 20 for the examples/runtime.wasm
-            exports.insert("memory", Memory::new(&store, MemoryType::new(20, None, false)).unwrap());
-            namespaces.insert("env".to_string(), exports);
+            exports.insert(memory_name, Memory::new(&store, memory_type).unwrap());
+            namespaces.insert(memory_namespace, exports);
         }
         for (namespace, exports) in namespaces.into_iter() {
             import_object.register(namespace, exports);

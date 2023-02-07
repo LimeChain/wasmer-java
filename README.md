@@ -110,7 +110,7 @@ class Example {
 
 There is more examples in the `examples/` directory. Run them with the
 `Makefile`, such as: `make run-example EXAMPLE=Simple` to run the
-`SimpleExample` example.
+`ImportExample` example.
 
 # API of the `wasmer` library
 

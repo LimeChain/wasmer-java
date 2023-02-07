@@ -8,22 +8,36 @@ import java.nio.file.Paths;
 
 class MemoryExample {
     public static void main(String[] args) throws IOException {
-        byte[] bytes = Files.readAllBytes(Paths.get("memory.wasm"));
-        Instance instance = new Instance(bytes);
-        Integer pointer = (Integer) instance.exports.getFunction("return_hello").apply()[0];
+        System.out.println("\nTEST ACCESSING AND MODIFYING WASM MEMORY");
+        System.out.println("Reading wasm bytes");
+        Instance instance = new Instance(Files.readAllBytes(Paths.get("hello_world.wasm")));
 
+        System.out.println("Getting memory export");
         Memory memory = instance.exports.getMemory("memory");
-
         ByteBuffer memoryBuffer = memory.buffer();
 
+        System.out.println("Calling exported function 'string' which returns a pointer");
+        int pointer = (Integer) instance.exports.getFunction("string").apply()[0];
         byte[] data = new byte[13];
         memoryBuffer.position(pointer);
         memoryBuffer.get(data);
 
-        String result = new String(data);
+        System.out.println("Current value of data starting from the `string` pointer: " + new String(data));
 
-        assert result.equals("Hello, World!");
-        System.out.println("here");
+        memoryBuffer.position(pointer);
+        System.out.println("Changing first byte at pointer address");
+        memoryBuffer.put(new byte[]{'A'});
+
+        memory = instance.exports.getMemory("memory");
+        memoryBuffer = memory.buffer();
+
+        System.out.println("Calling the exported 'string' function a second time");
+        pointer = (Integer) instance.exports.getFunction("string").apply()[0];
+        data = new byte[13];
+        memoryBuffer.position(pointer);
+        memoryBuffer.get(data);
+
+        System.out.println("Current value of data starting from the `string` pointer: " + new String(data));
 
         instance.close();
     }
