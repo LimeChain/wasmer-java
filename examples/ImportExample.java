@@ -1,6 +1,6 @@
+import org.wasmer.ImportObject;
 import org.wasmer.Imports;
 import org.wasmer.Instance;
-import org.wasmer.MemoryType;
 import org.wasmer.Module;
 import org.wasmer.Type;
 
@@ -18,16 +18,15 @@ class ImportExample {
         Module module = new Module(bytes);
         System.out.println("Creating import object");
         Imports imports = Imports.from(Arrays.asList(
-                        new Imports.Spec("env", "ext_storage_set_version_1", argv -> {
+                        new ImportObject.FuncImport("env", "ext_storage_set_version_1", argv -> {
                             System.out.println("Message printed in the body of 'ext_storage_set_version_1'");
                             return argv;
                         }, Arrays.asList(Type.I64, Type.I64), Collections.emptyList()),
-                        new Imports.Spec("env", "ext_storage_get_version_1", argv -> {
+                        new ImportObject.FuncImport("env", "ext_storage_get_version_1", argv -> {
                             System.out.println("Message printed in the body of 'ext_storage_get_version_1'");
                             return argv;
-                        },
-                                Collections.singletonList(Type.I64), Collections.singletonList(Type.I64))),
-                new MemoryType("env", "memory", false, 45), module);
+                        }, Collections.singletonList(Type.I64), Collections.singletonList(Type.I64)),
+                        new ImportObject.MemoryImport("env", 20, false)), module);
         System.out.println("Instantiating module");
         Instance instance = module.instantiate(imports);
 

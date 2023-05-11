@@ -10,10 +10,10 @@ extern "C" {
 /*
  * Class:     org_wasmer_Imports
  * Method:    nativeImportsInstantiate
- * Signature: (Ljava/util/List;Lorg/wasmer/MemoryType;J)J
+ * Signature: (Ljava/util/List;J)J
  */
 JNIEXPORT jlong JNICALL Java_org_wasmer_Imports_nativeImportsInstantiate
-  (JNIEnv *, jclass, jobject, jobject, jlong);
+  (JNIEnv *, jclass, jobject, jlong);
 
 /*
  * Class:     org_wasmer_Imports
