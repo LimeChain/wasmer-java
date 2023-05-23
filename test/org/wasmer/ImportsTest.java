@@ -44,7 +44,7 @@ class ImportsTest {
         AtomicReference<Number> arg2r = new AtomicReference<>();
         AtomicReference<Number> ret1r = new AtomicReference<>();
         Imports imports = Imports.from(Collections.singletonList(
-            new Imports.Spec("env", "mul_from_java", argv -> {
+            new ImportObject.FuncImport("env", "mul_from_java", argv -> {
                 arg1r.set(argv.get(0));
                 arg2r.set(argv.get(1));
                 int arg1 = argv.get(0).intValue();
@@ -54,7 +54,7 @@ class ImportsTest {
                 ret1r.set(argv.get(0));
                 return argv;
             }, Arrays.asList(Type.I32, Type.I32), Collections.singletonList(Type.I32))
-        ), new MemoryType("env", "memory", false, 45), module);
+        ), module);
         Instance instance = module.instantiate(imports);
 
         Object[] ret = instance.exports.getFunction("double_each_arg_then_mul").apply(2, 3);
@@ -80,7 +80,7 @@ class ImportsTest {
         Module module = new Module(getBytes("import_accessmemory.wasm"));
         AtomicReference<Instance> arInstance = new AtomicReference<>();
         Imports imports = Imports.from(Arrays.asList(
-                new Imports.Spec("env", "get_greet_msg_len_from_java", argv -> {
+                new ImportObject.FuncImport("env", "get_greet_msg_len_from_java", argv -> {
                     Memory memory = arInstance.get().exports.getMemory("memory");
                     int msgKeyPtr = argv.get(0).intValue();
                     ByteBuffer mbf = memory.buffer();
@@ -88,7 +88,7 @@ class ImportsTest {
                     argv.set(0, msgKey.length());
                     return argv;
                 }, Collections.singletonList(Type.I32), Collections.singletonList(Type.I32)),
-                new Imports.Spec("env", "greet_from_java", argv -> {
+                new ImportObject.FuncImport("env", "greet_from_java", argv -> {
                     Memory memory = arInstance.get().exports.getMemory("memory");
                     int msgKeyPtr = argv.get(0).intValue();
                     ByteBuffer mbf = memory.buffer();
@@ -100,7 +100,7 @@ class ImportsTest {
                     mbf.put(msgValueBytes);
                     return argv;
                 }, Arrays.asList(Type.I32, Type.I32), Collections.singletonList(Type.I32))
-        ), new MemoryType("env", "memory", false, 45), module);
+        ), module);
 
         Instance instance = module.instantiate(imports);
         arInstance.set(instance);

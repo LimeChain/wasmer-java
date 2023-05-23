@@ -26,7 +26,7 @@ impl Module {
         let store = runtime::Store::new(&UniversalEngine::new(Cranelift::default()).engine());
         let module_bytes = module_bytes.as_slice();
         let module = runtime::Module::new(&store, module_bytes)
-            .map_err(|e| runtime_error(format!("Failed to compile the module: {}", e)))?;
+            .map_err(|e| runtime_error(format!("Failed to compile the module: {:?}", e)))?;
 
         Ok(Self {
             java_module_object,

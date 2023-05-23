@@ -49,8 +49,7 @@ public class Module {
      * @param moduleBytes WebAssembly bytes.
      */
     public Module(byte[] moduleBytes) throws RuntimeException {
-        long modulePointer = this.nativeModuleInstantiate(this, moduleBytes);
-        this.modulePointer = modulePointer;
+        this.modulePointer = this.nativeModuleInstantiate(this, moduleBytes);
     }
 
     private Module() {}
@@ -60,9 +59,9 @@ public class Module {
      */
     public void close() {
         // To avoid duplicate native dropping
-        if (this.modulePointer != 0l) {
+        if (this.modulePointer != 0L) {
             this.nativeDrop(this.modulePointer);
-            this.modulePointer = 0l;
+            this.modulePointer = 0L;
         }
     }
 
@@ -74,9 +73,6 @@ public class Module {
         this.close();
     }
 
-    public Instance instantiate() {
-        return instantiate(Imports.from(Collections.emptyList(), null, this));
-    }
     /**
      * Create an instance object based on a module object.
      *
@@ -88,8 +84,8 @@ public class Module {
         long instancePointer = this.nativeInstantiate(this.modulePointer, instance, imports.importsPointer);
         instance.instancePointer = instancePointer;
 
-        instance.nativeInitializeExportedFunctions(instancePointer);
-        instance.nativeInitializeExportedMemories(instancePointer);
+        Instance.nativeInitializeExportedFunctions(instancePointer);
+        Instance.nativeInitializeExportedMemories(instancePointer);
         return instance;
     }
 

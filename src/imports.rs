@@ -31,8 +31,7 @@ fn array2vec<'a, T: TypeArray>(array: &'a AutoArray<T>) -> Vec<&'a T> {
 pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
     env: JNIEnv,
     _class: JClass,
-    spec: JObject,
-    memory: JObject,
+    imports: JObject,
     module: jptr,
 ) -> jptr {
     let output = panic::catch_unwind(|| {
@@ -40,77 +39,74 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
         let mut import_object = ImportObject::new();
         let module: &Module = Into::<Pointer<Module>>::into(module).borrow();
         let store = module.module.store();
-        let spec = env.get_list(spec).unwrap();
+        let imports = env.get_list(imports).unwrap();
 
-        let memory_type = if !memory.is_null() {
-            let min_pages = env.get_field(memory, "minPages", "I").unwrap().i().unwrap();
-            MemoryType::new(u32::try_from(min_pages).unwrap(), None, false)
-        } else {
-            unimplemented!();
-        };
-        let memory_namespace = env.get_field(memory, "namespace", "Ljava/lang/String;").unwrap().l().unwrap();
-        let memory_namespace = env.get_string(memory_namespace.into()).unwrap().to_str().unwrap().to_owned();
-        let memory_name = env.get_field(memory, "name", "Ljava/lang/String;").unwrap().l().unwrap();
-        let memory_name = env.get_string(memory_name.into()).unwrap().to_str().unwrap().to_owned();
-
-        for import in spec.iter().unwrap() {
+        for import in imports.iter().unwrap() {
             let namespace = env.get_field(import, "namespace", "Ljava/lang/String;").unwrap().l().unwrap();
             let namespace = env.get_string(namespace.into()).unwrap().to_str().unwrap().to_string();
             let name = env.get_field(import, "name", "Ljava/lang/String;").unwrap().l().unwrap();
             let name = env.get_string(name.into()).unwrap().to_str().unwrap().to_string();
-            let function = env.get_field(import, "function", "Ljava/util/function/Function;").unwrap().l().unwrap();
-            let params = env.get_field(import, "argTypesInt", "[I").unwrap().l().unwrap();
-            let returns = env.get_field(import, "retTypesInt", "[I").unwrap().l().unwrap();
-            let params = env.get_int_array_elements(*params, ReleaseMode::NoCopyBack).unwrap();
-            let returns = env.get_int_array_elements(*returns, ReleaseMode::NoCopyBack).unwrap();
-            let i2t = |i: &i32| match i { 1 => Type::I32, 2 => Type::I64, 3 => Type::F32, 4 => Type::F64, _ => unreachable!("Unknown {}", i)};
-            let params = array2vec(&params).into_iter().map(i2t).collect::<Vec<_>>();
-            let returns = array2vec(&returns).into_iter().map(i2t).collect::<Vec<_>>();
-            let sig = FunctionType::new(params.clone(), returns.clone());
-            let function = env.new_global_ref(function).unwrap();
-            let jvm = env.get_java_vm().unwrap();
-            namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Function::new(store, sig, move |argv| {
-                // There is many ways of transferring the args from wasm to java, JList being the cleanes,
-                // but probably also slowest by far (two JNI calls per argument). Benchmark?
-                let env = jvm.get_env().unwrap();
-                env.ensure_local_capacity(argv.len() as i32 + 2).ok();
-                let jargv = env.new_long_array(argv.len() as i32).unwrap();
-                let argv = argv.into_iter().enumerate().map(|(i, arg)| match arg {
-                    Value::I32(arg) => { assert!(params[i] == Type::I32); *arg as i64 },
-                    Value::I64(arg) => { assert!(params[i] == Type::I64); *arg as i64 },
-                    Value::F32(arg) => { assert!(params[i] == Type::F32); arg.to_bits() as i64 },
-                    Value::F64(arg) => { assert!(params[i] == Type::F64); arg.to_bits() as i64 },
-                    _ => panic!("Argument of unsupported type {:?}", arg)
-                }).collect::<Vec<jlong>>();
-                env.set_long_array_region(jargv, 0, &argv).unwrap();
-                let jret = env.call_method(function.as_obj(), "apply", "(Ljava/lang/Object;)Ljava/lang/Object;", &[jargv.into()]).unwrap().l().unwrap();
-                let ret = match returns.len() {
-                    0 => vec![],
-                    len => {
-                        let mut ret = vec![0; len];
-                        env.get_long_array_region(*jret, 0, &mut ret).unwrap();
-                        ret.into_iter().enumerate().map(|(i, ret)| match returns[i] {
-                            Type::I32 => Value::I32(ret as i32),
-                            Type::I64 => Value::I64(ret as i64),
-                            Type::F32 => Value::F32(f32::from_bits(ret as u32)),
-                            Type::F64 => Value::F64(f64::from_bits(ret as u64)),
-                            t => panic!("Return of unsupported type {:?}", t)
-                        }).collect()
-                    }
+
+            if name == "memory" {
+                let min_pages = env.get_field(import, "minPages", "I").unwrap().i().unwrap();
+                let max_pages = env.get_field(import, "maxPages", "Ljava/lang/Integer;").unwrap().l().unwrap();
+                let max_pages = if max_pages.is_null() {
+                    None
+                } else {
+                    //have to get the field again if not null as it cannot be cast to int
+                    let max_pages = env.get_field(import, "maxPages", "I").unwrap().i().unwrap();
+                    Some(u32::try_from(max_pages).unwrap())
                 };
-                // TODO: Error handling
-                Ok(ret)
-            }));
+                let shared = env.get_field(import, "shared", "Z").unwrap().z().unwrap();
+                let memory_type = MemoryType::new(u32::try_from(min_pages).unwrap(), max_pages, shared);
+                namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Memory::new(&store, memory_type).unwrap())
+            } else {
+                let function = env.get_field(import, "function", "Ljava/util/function/Function;").unwrap().l().unwrap();
+                let params = env.get_field(import, "argTypesInt", "[I").unwrap().l().unwrap();
+                let returns = env.get_field(import, "retTypesInt", "[I").unwrap().l().unwrap();
+                let params = env.get_int_array_elements(*params, ReleaseMode::NoCopyBack).unwrap();
+                let returns = env.get_int_array_elements(*returns, ReleaseMode::NoCopyBack).unwrap();
+                let i2t = |i: &i32| match i { 1 => Type::I32, 2 => Type::I64, 3 => Type::F32, 4 => Type::F64, _ => unreachable!("Unknown {}", i)};
+                let params = array2vec(&params).into_iter().map(i2t).collect::<Vec<_>>();
+                let returns = array2vec(&returns).into_iter().map(i2t).collect::<Vec<_>>();
+                let sig = FunctionType::new(params.clone(), returns.clone());
+                let function = env.new_global_ref(function).unwrap();
+                let jvm = env.get_java_vm().unwrap();
+                namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Function::new(store, sig, move |argv| {
+                    // There are many ways of transferring the args from wasm to java, JList being the cleanest,
+                    // but probably also slowest by far (two JNI calls per argument). Benchmark?
+                    let env = jvm.get_env().unwrap();
+                    env.ensure_local_capacity(argv.len() as i32 + 2).ok();
+                    let jargv = env.new_long_array(argv.len() as i32).unwrap();
+                    let argv = argv.into_iter().enumerate().map(|(i, arg)| match arg {
+                        Value::I32(arg) => { assert_eq!(params[i], Type::I32); *arg as i64 },
+                        Value::I64(arg) => { assert_eq!(params[i], Type::I64); *arg as i64 },
+                        Value::F32(arg) => { assert_eq!(params[i], Type::F32); arg.to_bits() as i64 },
+                        Value::F64(arg) => { assert_eq!(params[i], Type::F64); arg.to_bits() as i64 },
+                        _ => panic!("Argument of unsupported type {:?}", arg)
+                    }).collect::<Vec<jlong>>();
+                    env.set_long_array_region(jargv, 0, &argv).unwrap();
+                    let jret = env.call_method(function.as_obj(), "apply", "(Ljava/lang/Object;)Ljava/lang/Object;", &[jargv.into()]).unwrap().l().unwrap();
+                    let ret = match returns.len() {
+                        0 => vec![],
+                        len => {
+                            let mut ret = vec![0; len];
+                            env.get_long_array_region(*jret, 0, &mut ret).unwrap();
+                            ret.into_iter().enumerate().map(|(i, ret)| match returns[i] {
+                                Type::I32 => Value::I32(ret as i32),
+                                Type::I64 => Value::I64(ret as i64),
+                                Type::F32 => Value::F32(f32::from_bits(ret as u32)),
+                                Type::F64 => Value::F64(f64::from_bits(ret as u64)),
+                                t => panic!("Return of unsupported type {:?}", t)
+                            }).collect()
+                        }
+                    };
+                    // TODO: Error handling
+                    Ok(ret)
+                }));
+            }
         }
 
-        if namespaces.contains_key(memory_namespace.as_str()) {
-            let env_namespace = namespaces.entry(memory_namespace);
-            env_namespace.or_insert_with(|| Exports::new()).insert(memory_name, Memory::new(&store, memory_type).unwrap());
-        } else {
-            let mut exports = Exports::new();
-            exports.insert(memory_name, Memory::new(&store, memory_type).unwrap());
-            namespaces.insert(memory_namespace, exports);
-        }
         for (namespace, exports) in namespaces.into_iter() {
             import_object.register(namespace, exports);
         }

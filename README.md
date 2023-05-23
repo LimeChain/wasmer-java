@@ -108,7 +108,7 @@ class Example {
 }
 ```
 
-There is more examples in the `examples/` directory. Run them with the
+There are more examples in the `examples/` directory. Run them with the
 `Makefile`, such as: `make run-example EXAMPLE=Simple` to run the
 `ImportExample` example.
 
