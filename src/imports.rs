@@ -73,7 +73,7 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
                 let function = env.new_global_ref(function).unwrap();
                 let jvm = env.get_java_vm().unwrap();
                 namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Function::new(store, sig, move |argv| {
-                    // There is many ways of transferring the args from wasm to java, JList being the cleanest,
+                    // There are many ways of transferring the args from wasm to java, JList being the cleanest,
                     // but probably also slowest by far (two JNI calls per argument). Benchmark?
                     let env = jvm.get_env().unwrap();
                     env.ensure_local_capacity(argv.len() as i32 + 2).ok();
