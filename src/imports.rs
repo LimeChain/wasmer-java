@@ -39,45 +39,45 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
         let mut import_object = ImportObject::new();
         let module: &Module = Into::<Pointer<Module>>::into(module).borrow();
         let store = module.module.store();
-        let imports = env.get_list(imports).unwrap();
+        let imports = env.get_list(imports)?;
 
-        for import in imports.iter().unwrap() {
-            let namespace = env.get_field(import, "namespace", "Ljava/lang/String;").unwrap().l().unwrap();
-            let namespace = env.get_string(namespace.into()).unwrap().to_str().unwrap().to_string();
-            let name = env.get_field(import, "name", "Ljava/lang/String;").unwrap().l().unwrap();
-            let name = env.get_string(name.into()).unwrap().to_str().unwrap().to_string();
+        for import in imports.iter()? {
+            let namespace = env.get_field(import, "namespace", "Ljava/lang/String;")?.l()?;
+            let namespace = env.get_string(namespace.into())?.to_str()?.to_string();
+            let name = env.get_field(import, "name", "Ljava/lang/String;")?.l()?;
+            let name = env.get_string(name.into())?.to_str()?.to_string();
 
             if name == "memory" {
-                let min_pages = env.get_field(import, "minPages", "I").unwrap().i().unwrap();
-                let max_pages = env.get_field(import, "maxPages", "Ljava/lang/Integer;").unwrap().l().unwrap();
+                let min_pages = env.get_field(import, "minPages", "I")?.i()?;
+                let max_pages = env.get_field(import, "maxPages", "Ljava/lang/Integer;")?.l()?;
                 let max_pages = if max_pages.is_null() {
                     None
                 } else {
                     //have to get the field again if not null as it cannot be cast to int
-                    let max_pages = env.get_field(import, "maxPages", "I").unwrap().i().unwrap();
-                    Some(u32::try_from(max_pages).unwrap())
+                    let max_pages = env.get_field(import, "maxPages", "I")?.i()?;
+                    Some(u32::try_from(max_pages)?)
                 };
-                let shared = env.get_field(import, "shared", "Z").unwrap().z().unwrap();
-                let memory_type = MemoryType::new(u32::try_from(min_pages).unwrap(), max_pages, shared);
-                namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Memory::new(&store, memory_type).unwrap())
+                let shared = env.get_field(import, "shared", "Z")?.z()?;
+                let memory_type = MemoryType::new(u32::try_from(min_pages)?, max_pages, shared);
+                namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Memory::new(&store, memory_type)?)
             } else {
-                let function = env.get_field(import, "function", "Ljava/util/function/Function;").unwrap().l().unwrap();
-                let params = env.get_field(import, "argTypesInt", "[I").unwrap().l().unwrap();
-                let returns = env.get_field(import, "retTypesInt", "[I").unwrap().l().unwrap();
-                let params = env.get_int_array_elements(*params, ReleaseMode::NoCopyBack).unwrap();
-                let returns = env.get_int_array_elements(*returns, ReleaseMode::NoCopyBack).unwrap();
+                let function = env.get_field(import, "function", "Ljava/util/function/Function;")?.l()?;
+                let params = env.get_field(import, "argTypesInt", "[I")?.l()?;
+                let returns = env.get_field(import, "retTypesInt", "[I")?.l()?;
+                let params = env.get_int_array_elements(*params, ReleaseMode::NoCopyBack)?;
+                let returns = env.get_int_array_elements(*returns, ReleaseMode::NoCopyBack)?;
                 let i2t = |i: &i32| match i { 1 => Type::I32, 2 => Type::I64, 3 => Type::F32, 4 => Type::F64, _ => unreachable!("Unknown {}", i)};
                 let params = array2vec(&params).into_iter().map(i2t).collect::<Vec<_>>();
                 let returns = array2vec(&returns).into_iter().map(i2t).collect::<Vec<_>>();
                 let sig = FunctionType::new(params.clone(), returns.clone());
-                let function = env.new_global_ref(function).unwrap();
-                let jvm = env.get_java_vm().unwrap();
+                let function = env.new_global_ref(function)?;
+                let jvm = env.get_java_vm()?;
                 namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Function::new(store, sig, move |argv| {
                     // There are many ways of transferring the args from wasm to java, JList being the cleanest,
                     // but probably also slowest by far (two JNI calls per argument). Benchmark?
-                    let env = jvm.get_env().unwrap();
+                    let env = jvm.get_env().expect("Couldn't get JNIEnv");
                     env.ensure_local_capacity(argv.len() as i32 + 2).ok();
-                    let jargv = env.new_long_array(argv.len() as i32).unwrap();
+                    let jargv = env.new_long_array(argv.len() as i32).expect("Couldn't create array");
                     let argv = argv.into_iter().enumerate().map(|(i, arg)| match arg {
                         Value::I32(arg) => { assert_eq!(params[i], Type::I32); *arg as i64 },
                         Value::I64(arg) => { assert_eq!(params[i], Type::I64); *arg as i64 },
@@ -85,13 +85,14 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
                         Value::F64(arg) => { assert_eq!(params[i], Type::F64); arg.to_bits() as i64 },
                         _ => panic!("Argument of unsupported type {:?}", arg)
                     }).collect::<Vec<jlong>>();
-                    env.set_long_array_region(jargv, 0, &argv).unwrap();
-                    let jret = env.call_method(function.as_obj(), "apply", "(Ljava/lang/Object;)Ljava/lang/Object;", &[jargv.into()]).unwrap().l().unwrap();
+                    env.set_long_array_region(jargv, 0, &argv).expect("Couldn't set array region");
+                    let jret = env.call_method(function.as_obj(), "apply", "(Ljava/lang/Object;)Ljava/lang/Object;", &[jargv.into()])
+                        .expect("Couldn't call 'apply' function").l().expect("Failed to unwrap object");
                     let ret = match returns.len() {
                         0 => vec![],
                         len => {
                             let mut ret = vec![0; len];
-                            env.get_long_array_region(*jret, 0, &mut ret).unwrap();
+                            env.get_long_array_region(*jret, 0, &mut ret).expect("Couldn't get array region");
                             ret.into_iter().enumerate().map(|(i, ret)| match returns[i] {
                                 Type::I32 => Value::I32(ret as i32),
                                 Type::I64 => Value::I64(ret as i64),
@@ -101,7 +102,6 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
                             }).collect()
                         }
                     };
-                    // TODO: Error handling
                     Ok(ret)
                 }));
             }
@@ -125,10 +125,9 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsWasi(
     module: jptr,
 ) -> jptr {
     let output = panic::catch_unwind(|| {
-        // TODO: When getting serious about this, one might have to expose the wasi builder... :/
         let module: &Module = Into::<Pointer<Module>>::into(module).borrow();
-        let mut wasi = WasiState::new("").finalize().unwrap();
-        let import_object = wasi.import_object(&module.module).unwrap();
+        let mut wasi = WasiState::new("").finalize()?;
+        let import_object = wasi.import_object(&module.module)?;
         let import_object = Box::new(import_object);
 
         Ok(Pointer::new(Imports { import_object }).into())
@@ -145,7 +144,6 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsChain(
     front: jptr,
 ) -> jptr {
     let output = panic::catch_unwind(|| {
-
         let back: &Imports = Into::<Pointer<Imports>>::into(back).borrow();
         let front: &Imports = Into::<Pointer<Imports>>::into(front).borrow();
         let import_object = Box::new((&back.import_object).chain_front(&front.import_object));
@@ -154,14 +152,4 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsChain(
     });
 
     joption_or_throw(&env, output).unwrap_or(0)
-
-}
-
-#[no_mangle]
-pub extern "system" fn Java_org_wasmer_Imports_nativeDrop(
-    _env: JNIEnv,
-    _class: JClass,
-    imports_pointer: jptr,
-) {
-    let _: Pointer<Imports> = imports_pointer.into();
 }

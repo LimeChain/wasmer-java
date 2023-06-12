@@ -12,7 +12,6 @@ public class Imports {
     private static native long nativeImportsInstantiate(List<ImportObject> imports, long modulePointer) throws RuntimeException;
     private static native long nativeImportsChain(long back, long front) throws RuntimeException;
     private static native long nativeImportsWasi(long modulePointer) throws RuntimeException;
-    private static native void nativeDrop(long nativePointer);
 
     final long importsPointer;
 
@@ -30,10 +29,5 @@ public class Imports {
 
     public static Imports wasi(Module module) {
         return new Imports(nativeImportsWasi(module.modulePointer));
-    }
-
-    protected void finalize() {
-        nativeDrop(importsPointer);
-        // TODO allow memory-safe user invocation
     }
 }
