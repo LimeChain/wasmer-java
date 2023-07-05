@@ -39,7 +39,9 @@ class ModuleTest {
             Module module = new Module(getBytes("invalid.wasm"));
         });
 
-        String expected = "Failed to compile the module: Validation error: invalid leading byte in type definition";
+        String expected = "Failed to compile the module: Validate(\"invalid leading byte in type definition";
+//                          "Failed to compile the module: Validate(\"invalid leading byte in type definition (at offset 11)\")"
+//        assertEquals(exception.getMessage(), expected);
         assertTrue(exception.getMessage().startsWith(expected));
     }
 

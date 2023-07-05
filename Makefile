@@ -111,6 +111,13 @@ run-example:
 		javac -classpath "../${JAR}" ${EXAMPLE}Example.java; \
 		java -Djava.library.path=$(CURDIR)/artifacts/$(build_os)-$(build_arch) -classpath ".:../${JAR}" -enableassertions ${EXAMPLE}Example
 
+# Runs the main class, cd to java is necessary because java.org.wasmer is a "Prohibited package name"
+run-main:
+	$(eval JAR := $(shell find ./build/libs/ -name "wasmer-jni-*.jar"))
+	@cd src; \
+		javac -sourcepath ./java -classpath "./${JAR}" java/org/wasmer/Main.java; \
+		cd java && java -Djava.library.path=$(CURDIR)/artifacts/$(build_os)-$(build_arch) -classpath ".:../${JAR}" org/wasmer/Main; \
+		find org -type f -name "*.class" -delete
 # Clean
 clean:
 	cargo clean

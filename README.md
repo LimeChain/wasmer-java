@@ -66,9 +66,13 @@ releases page](https://github.com/wasmerio/wasmer-java/releases)!
 architecture, see [the Development Section](#development) to learn
 more.
 
+# Main
+
+To compile and execute the main class located at `src/java/org/wasmer/Main.java` run the following command: `make run-main`
+
 # Example
 
-There is a toy program in `java/src/test/resources/simple.rs`, written
+There is a toy program in `test/resources/simple.rs`, written
 in Rust (or any other language that compiles to WebAssembly):
 
 ```rust
