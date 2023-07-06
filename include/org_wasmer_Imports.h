@@ -31,14 +31,6 @@ JNIEXPORT jlong JNICALL Java_org_wasmer_Imports_nativeImportsChain
 JNIEXPORT jlong JNICALL Java_org_wasmer_Imports_nativeImportsWasi
   (JNIEnv *, jclass, jlong);
 
-/*
- * Class:     org_wasmer_Imports
- * Method:    nativeDrop
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_org_wasmer_Imports_nativeDrop
-  (JNIEnv *, jclass, jlong);
-
 #ifdef __cplusplus
 }
 #endif
