@@ -11,7 +11,7 @@ use jni::{
     JNIEnv,
 };
 use std::{collections::HashMap, panic, rc::Rc};
-use wasmer::{self as runtime, Extern, Engine as _};
+use wasmer::{self as runtime, Extern, Engine as _, NamedResolver};
 use wasmer_compiler_cranelift::Cranelift;
 use wasmer_engine_universal::Universal as UniversalEngine;
 
@@ -106,7 +106,7 @@ pub extern "system" fn Java_org_wasmer_Module_nativeInstantiate(
         let instance = runtime::Instance::new(&module.module, &imports.import_object).map_err(|e| {
             runtime_error(format!("Failed to instantiate a WebAssembly module: {}", e))
         })?;
-
+        println!("IDK WTF THIS WILL PRINT {:?}", imports.import_object.resolve_by_name("memory", "memory"));
         let memories: HashMap<String, Memory> = instance
             .exports
             .iter()

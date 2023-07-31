@@ -3,6 +3,7 @@ import org.wasmer.Imports;
 import org.wasmer.Instance;
 import org.wasmer.Module;
 import org.wasmer.Type;
+import org.wasmer.Memory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,6 +34,8 @@ class ImportExample {
         System.out.println("Calling exported function 'Core_initialize_block' as it calls both of the imported functions");
         instance.exports.getFunction("Core_initialize_block").apply(1,2);
 
+        Memory memory = instance.exports.getMemory("memory");
+        memory.printsss();
         instance.close();
     }
 }

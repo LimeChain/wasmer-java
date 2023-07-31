@@ -53,6 +53,10 @@ public class Memory implements Export {
         return this.buffer;
     }
 
+    public void printsss() {
+        System.out.println("yep it is a real mem");
+    }
+
     /**
      * Set the `ByteBuffer` of this memory. See `Memory.buffer` to learn more.
      *

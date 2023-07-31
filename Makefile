@@ -85,7 +85,7 @@ test-java:
 # Test the examples.
 test-examples:
 	@for example in $(shell find examples -name "*Example.java") ; do \
-		example=$${example#examples/}; \
+		example=$${example%examples/}; \
 		example=$${example%Example.java}; \
 		echo "Testing $${example}"; \
 		make run-example EXAMPLE=$${example}; \

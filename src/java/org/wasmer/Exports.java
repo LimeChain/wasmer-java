@@ -23,7 +23,7 @@ import java.util.Map;
  * }</pre>
  */
 public class Exports {
-    private Map<String, Export> inner;
+    public Map<String, Export> inner;
     private Instance instance;
 
     /**
@@ -74,6 +74,7 @@ public class Exports {
      * Called by Rust to add a new exported memory.
      */
     private void addMemory(String name, Memory memory) {
+        System.out.println("well i get called too");
         this.inner.put(name, memory);
     }
 
