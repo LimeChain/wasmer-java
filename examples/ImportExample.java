@@ -35,7 +35,6 @@ class ImportExample {
         instance.exports.getFunction("Core_initialize_block").apply(1,2);
 
         Memory memory = instance.exports.getMemory("memory");
-        memory.printsss();
         instance.close();
     }
 }

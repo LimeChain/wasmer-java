@@ -74,7 +74,6 @@ public class Exports {
      * Called by Rust to add a new exported memory.
      */
     private void addMemory(String name, Memory memory) {
-        System.out.println("well i get called too");
         this.inner.put(name, memory);
     }
 

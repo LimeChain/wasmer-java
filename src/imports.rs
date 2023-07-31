@@ -111,7 +111,6 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
         }
 
         for (namespace, exports) in namespaces.into_iter() {
-            println!("namespace {}\nexports {:?}", namespace, exports);
             import_object.register(namespace, exports);
         }
         let import_object = Box::new(import_object);

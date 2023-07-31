@@ -127,7 +127,6 @@ pub mod java {
             .l()?;
 
         // Get the `org.wasmer.Memory` class.
-        println!("kolko pati");
         let memory_class = env.find_class("org/wasmer/Memory")?;
         unsafe {
             let imported_memory = IMPORTED_MEMORY.lock().unwrap();
