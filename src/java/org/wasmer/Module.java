@@ -1,6 +1,9 @@
 package org.wasmer;
 
+import org.wasmer.exports.Export;
+
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * `Module` is a Java class that represents a WebAssembly module.

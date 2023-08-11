@@ -11,6 +11,7 @@ use jni::{
     JNIEnv,
 };
 use std::{collections::HashMap, convert::TryFrom, panic, rc::Rc};
+use std::sync::Arc;
 use wasmer::{imports, Extern, Value as WasmValue, Function};
 use wasmer as core;
 use wasmer_compiler_cranelift::Cranelift;
@@ -43,7 +44,7 @@ impl Instance {
             .exports
             .iter()
             .filter_map(|(export_name, export)| match export {
-                Extern::Memory(memory) => Some((export_name.to_string(), Memory::new(Rc::new(memory.clone())))),
+                Extern::Memory(memory) => Some((export_name.to_string(), Memory::new(Arc::new(memory.clone())))),
                 _ => None,
             })
             .collect();

@@ -10,8 +10,10 @@ use jni::{
 };
 use std::{collections::HashMap, panic};
 use std::convert::TryFrom;
+use std::sync::Arc;
 use wasmer::{ImportObject, NamedResolver, ChainableNamedResolver, Exports, Function, FunctionType, Type, Value, Memory, MemoryType};
 use wasmer_wasi::WasiState;
+use crate::memory::{IMPORTED_MEMORY, Memory as MemoryWrapper};
 
 pub struct Imports {
     pub(crate) import_object: Box<dyn NamedResolver>,
@@ -59,7 +61,9 @@ pub extern "system" fn Java_org_wasmer_Imports_nativeImportsInstantiate(
                 };
                 let shared = env.get_field(import, "shared", "Z")?.z()?;
                 let memory_type = MemoryType::new(u32::try_from(min_pages)?, max_pages, shared);
-                namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, Memory::new(&store, memory_type)?)
+                let memory = Memory::new(&store, memory_type)?;
+                IMPORTED_MEMORY.lock().unwrap().replace(MemoryWrapper::new(Arc::new(memory.clone())));
+                namespaces.entry(namespace).or_insert_with(|| Exports::new()).insert(name, memory)
             } else {
                 let function = env.get_field(import, "function", "Ljava/util/function/Function;")?.l()?;
                 let params = env.get_field(import, "argTypesInt", "[I")?.l()?;

@@ -7,15 +7,13 @@ package org.wasmer;
 
 import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Native {
     public static final boolean LOADED_EMBEDDED_LIBRARY;
+    private static final Logger logger = Logger.getLogger(Native.class.getName());
 
     static {
         LOADED_EMBEDDED_LIBRARY = loadEmbeddedLibrary();
@@ -30,10 +28,19 @@ public class Native {
             osName = "windows";
         } else if (osName.contains("mac os x")) {
             osName = "darwin";
+            String[] args = new String[] {"/bin/bash", "-c", "uname", "-p"};
+            try {
+                Process proc = new ProcessBuilder(args).start();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                if (reader.readLine().equals("Darwin")) {
+                    return osName + "-arm64";
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             osName = osName.replaceAll("\\s+", "_");
         }
-
         return osName + "-" + System.getProperty("os.arch");
     }
 
@@ -56,16 +63,15 @@ public class Native {
         url.append(getCurrentPlatformIdentifier()).append("/");
 
         URL nativeLibraryUrl = null;
-
         // loop through extensions, stopping after finding first one
         for (String lib: libs) {
-            nativeLibraryUrl = Module.class.getResource(url.toString() + lib);
+            nativeLibraryUrl = Module.class.getResource(url + lib);
 
             if (nativeLibraryUrl != null) {
                 break;
             }
         }
-
+        
         if (nativeLibraryUrl != null) {
             // native library found within JAR, extract and load
             try {
@@ -73,9 +79,9 @@ public class Native {
                 libfile.deleteOnExit(); // just in case
 
                 final InputStream in = nativeLibraryUrl.openStream();
-                final OutputStream out = new BufferedOutputStream(new FileOutputStream(libfile));
+                final OutputStream out = new BufferedOutputStream(Files.newOutputStream(libfile.toPath()));
 
-                int len = 0;
+                int len;
                 byte[] buffer = new byte[8192];
 
                 while ((len = in.read(buffer)) > -1) {
@@ -88,7 +94,7 @@ public class Native {
 
                 usingEmbedded = true;
             } catch (IOException x) {
-                // mission failed, do nothing
+                logger.log(Level.SEVERE, "Failed to load native library", x);
             }
 
         }

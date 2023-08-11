@@ -23,7 +23,7 @@ import java.util.Map;
  * }</pre>
  */
 public class Exports {
-    private Map<String, Export> inner;
+    private final Map<String, Export> inner;
     private Instance instance;
 
     /**
