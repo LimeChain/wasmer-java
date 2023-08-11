@@ -150,10 +150,6 @@ pub mod java {
 
 
         for (memory_name, memory) in &instance.memories {
-            // let memory_name = "memory";
-            // let memory_type = MemoryType::new(u32::try_from(20)?, None, false);
-            // let memory = Memory::new(instance.instance.store(), memory_type);
-
             // Instantiate the `Memory` class.
             let memory_object = env.new_object(memory_class, "()V", &[])?;
 
