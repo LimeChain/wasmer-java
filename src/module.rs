@@ -11,7 +11,8 @@ use jni::{
     JNIEnv,
 };
 use std::{collections::HashMap, panic, rc::Rc};
-use wasmer::{self as runtime, Extern, Engine as _, NamedResolver};
+use std::sync::Arc;
+use wasmer::{self as runtime, Extern, Engine as _};
 use wasmer_compiler_cranelift::Cranelift;
 use wasmer_engine_universal::Universal as UniversalEngine;
 
@@ -110,7 +111,7 @@ pub extern "system" fn Java_org_wasmer_Module_nativeInstantiate(
             .exports
             .iter()
             .filter_map(|(export_name, export)| match export {
-                Extern::Memory(memory) => Some((export_name.to_string(), Memory::new(Rc::new(memory.clone())))),
+                Extern::Memory(memory) => Some((export_name.to_string(), Memory::new(Arc::new(memory.clone())))),
                 _ => None,
             })
             .collect();

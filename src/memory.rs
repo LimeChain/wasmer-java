@@ -7,22 +7,24 @@ use jni::{
     sys::jint,
     JNIEnv,
 };
-use std::{cell::Cell, panic, rc::Rc, slice};
-use std::cell::UnsafeCell;
-use std::sync::Mutex;
+use std::{cell::Cell, panic, slice};
+use std::sync::{Arc, Mutex};
 use wasmer::MemoryView;
 use wasmer::Pages;
 use wasmer::Memory as WasmMemory;
 
-pub static IMPORTED_MEMORY: Mutex<Option<WasmMemory>> = Mutex::new(None);
+/// A static variable holding the imported memory if there's such
+///
+/// Note that `Memory` here refers to the local struct and not `wasmer::Memory`
+pub static IMPORTED_MEMORY: Mutex<Option<Memory>> = Mutex::new(None);
 
 #[derive(Clone)]
 pub struct Memory {
-    pub memory: Rc<WasmMemory>,
+    pub memory: Arc<WasmMemory>,
 }
 
 impl Memory {
-    pub fn new(memory: Rc<WasmMemory>) -> Self {
+    pub fn new(memory: Arc<WasmMemory>) -> Self {
         Self { memory }
     }
 
@@ -106,15 +108,12 @@ pub extern "system" fn Java_org_wasmer_Memory_nativeMemoryGrow(
 }
 
 pub mod java {
-    use std::borrow::Borrow;
-    use std::convert::TryFrom;
     use crate::{
         exception::Error,
         instance::Instance,
         types::{jptr, Pointer},
     };
     use jni::{objects::JObject, JNIEnv};
-    use wasmer::{Memory, MemoryType};
     use crate::memory::IMPORTED_MEMORY;
 
     pub fn initialize_memories(env: &JNIEnv, instance: &Instance) -> Result<(), Error> {
@@ -128,28 +127,27 @@ pub mod java {
 
         // Get the `org.wasmer.Memory` class.
         let memory_class = env.find_class("org/wasmer/Memory")?;
-        unsafe {
-            let imported_memory = IMPORTED_MEMORY.lock().unwrap();
-            if imported_memory.is_some() {
-                let memory_object = env.new_object(memory_class, "()V", &[])?;
+        let memory_lock = IMPORTED_MEMORY.lock().unwrap();
+        if memory_lock.is_some() {
+            let memory_object = env.new_object(memory_class, "()V", &[])?;
 
-                // Try to set the memory pointer to the field `org.wasmer.Memory.memoryPointer`.
-                let memory_pointer: jptr = Pointer::new(imported_memory.as_ref().unwrap().borrow()).into();
-                env.set_field(memory_object, "memoryPointer", "J", memory_pointer.into())?;
+            // Try to set the memory pointer to the field `org.wasmer.Memory.memoryPointer`.
+            let memory_pointer: jptr = Pointer::new(memory_lock.clone().unwrap()).into();
+            env.set_field(memory_object, "memoryPointer", "J", memory_pointer.into())?;
 
-                // Add the newly created `org.wasmer.Memory` in the
-                // `org.wasmer.Exports` collection.
-                env.call_method(
-                    exports_object,
-                    "addMemory",
-                    "(Ljava/lang/String;Lorg/wasmer/Memory;)V",
-                    &[
-                        JObject::from(env.new_string("memory")?).into(),
-                        memory_object.into(),
-                    ],
-                )?;
-            }
+            // Add the newly created `org.wasmer.Memory` in the
+            // `org.wasmer.Exports` collection.
+            env.call_method(
+                exports_object,
+                "addMemory",
+                "(Ljava/lang/String;Lorg/wasmer/Memory;)V",
+                &[
+                    JObject::from(env.new_string("memory")?).into(),
+                    memory_object.into(),
+                ],
+            )?;
         }
+
 
         for (memory_name, memory) in &instance.memories {
             // let memory_name = "memory";
