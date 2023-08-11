@@ -15,8 +15,10 @@ else
 	ARCH := $(shell uname -m)
 	ifeq ($(ARCH),x86_64)
 		build_arch = amd64
-	else
+	else ifeq ($(ARCH),arm64)
 		build_arch = arm64
+	else
+	    $(error Architecture not supported yet)
 	endif
 endif
 
