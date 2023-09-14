@@ -28,6 +28,9 @@ public class Main {
         System.out.println("Calling exported function 'Core_initialize_block' as it calls both of the imported functions");
         instance.exports.getFunction("Core_initialize_block").apply(1,2);
 
+        Global heapBase = instance.exports.getGlobal("__heap_base");
+        System.out.println(heapBase.getIntValue());
+
         Memory memory = instance.exports.getMemory("memory");
         System.out.println(memory.buffer());
         instance.close();

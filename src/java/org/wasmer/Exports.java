@@ -23,6 +23,13 @@ import java.util.Map;
  * }</pre>
  */
 public class Exports {
+
+    /**
+     * Lambda expression for currying.
+     * This takes a function name and returns the function to call WebAssembly function.
+     */
+    private java.util.function.Function<String, Function> functionWrapperGenerator =
+            functionName -> arguments -> this.instance.nativeCallExportedFunction(this.instance.instancePointer, functionName, arguments);
     private final Map<String, Export> inner;
     private Instance instance;
 
@@ -64,6 +71,15 @@ public class Exports {
     }
 
     /**
+     * Return the export with the name `name` as an exported global.
+     *
+     * @param name Name of the exported global.
+     */
+    public Global getGlobal(String name) throws ClassCastException {
+        return (Global) this.inner.get(name);
+    }
+
+    /**
      * Called by Rust to add a new exported function.
      */
     private void addFunction(String name) {
@@ -78,11 +94,11 @@ public class Exports {
     }
 
     /**
-     * Lambda expression for currying.
-     * This takes a function name and returns the function to call WebAssembly function.
+     * Called by Rust to add a new exported global.
      */
-    private java.util.function.Function<String, Function> functionWrapperGenerator =
-        functionName -> arguments -> this.instance.nativeCallExportedFunction(this.instance.instancePointer, functionName, arguments);
+    private void addGlobal(String name, Global global) {
+        this.inner.put(name, global);
+    }
 
     /**
      * Generate the exported function wrapper.

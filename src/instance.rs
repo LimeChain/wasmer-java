@@ -12,7 +12,7 @@ use jni::{
 };
 use std::{collections::HashMap, convert::TryFrom, panic, rc::Rc};
 use std::sync::Arc;
-use wasmer::{imports, Extern, Value as WasmValue, Function};
+use wasmer::{imports, Extern, Value as WasmValue, Function, Exportable, Global, Type};
 use wasmer as core;
 use wasmer_compiler_cranelift::Cranelift;
 use wasmer_engine_universal::Universal as UniversalEngine;
@@ -220,6 +220,69 @@ pub extern "system" fn Java_org_wasmer_Instance_nativeInitializeExportedMemories
 
         memory::java::initialize_memories(&env, instance)?;
 
+        Ok(())
+    });
+
+    joption_or_throw(&env, output).unwrap_or(())
+}
+
+#[no_mangle]
+pub extern "system" fn Java_org_wasmer_Instance_nativeInitializeExportedGlobals(
+    env: JNIEnv,
+    _class: JClass,
+    instance_pointer: jptr,
+) {
+    let output = panic::catch_unwind(|| {
+        let instance: &Instance = Into::<Pointer<Instance>>::into(instance_pointer).borrow();
+
+        // Get the `org.wasmer.Global` class.
+        let global_class = env.find_class("org/wasmer/Global")?;
+        let exports_object: JObject = env
+            .get_field(
+                instance.java_instance_object.as_obj(),
+                "exports",
+                "Lorg/wasmer/Exports;",
+            )?
+            .l()?;
+
+        for (export_name, export) in instance.instance.exports.iter() {
+            if let Extern::Global { .. } = export {
+                let global = Global::get_self_from_extern(export).unwrap();
+                let name = env.new_string(export_name)?;
+                let global_object = env.new_object(global_class, "()V", &[])?;
+
+                // Sets the two fields of the Global class - value and type
+                match global.get().ty() {
+                    Type::I32 => {
+                        env.set_field(global_object, "value", "Ljava/lang/String;", env.new_string(global.get().unwrap_i32().to_string())?.into())?;
+                        env.set_field(global_object, "type", "Ljava/lang/String;", env.new_string("i32")?.into())?
+                    },
+                    Type::I64 => {
+                        env.set_field(global_object, "value", "Ljava/lang/String;", env.new_string(global.get().unwrap_i64().to_string())?.into())?;
+                        env.set_field(global_object, "type", "Ljava/lang/String;", env.new_string("i64")?.into())?
+                    },
+                    Type::F32 => {
+                        env.set_field(global_object, "value", "Ljava/lang/String;", env.new_string(global.get().unwrap_f32().to_string())?.into())?;
+                        env.set_field(global_object, "type", "Ljava/lang/String;", env.new_string("f32")?.into())?
+                    },
+                    Type::F64 => {
+                        env.set_field(global_object, "value", "Ljava/lang/String;", env.new_string(global.get().unwrap_f64().to_string())?.into())?;
+                        env.set_field(global_object, "type", "Ljava/lang/String;", env.new_string("f64")?.into())?
+                    },
+                    _ => println!("No current support for globals of type {}", global.get().ty())
+                }
+
+                env.call_method(
+                    exports_object,
+                    "addGlobal",
+                    "(Ljava/lang/String;Lorg/wasmer/Global;)V",
+                    &[
+                        JObject::from(name).into(),
+                        global_object.into()
+                    ],
+                )?;
+            }
+        }
         Ok(())
     });
 
