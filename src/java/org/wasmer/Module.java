@@ -1,10 +1,5 @@
 package org.wasmer;
 
-import org.wasmer.exports.Export;
-
-import java.util.Collections;
-import java.util.Map;
-
 /**
  * `Module` is a Java class that represents a WebAssembly module.
  *
@@ -89,6 +84,7 @@ public class Module {
 
         Instance.nativeInitializeExportedFunctions(instancePointer);
         Instance.nativeInitializeExportedMemories(instancePointer);
+        Instance.nativeInitializeExportedGlobals(instancePointer);
         return instance;
     }
 

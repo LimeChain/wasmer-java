@@ -148,7 +148,6 @@ pub mod java {
             )?;
         }
 
-
         for (memory_name, memory) in &instance.memories {
             // Instantiate the `Memory` class.
             let memory_object = env.new_object(memory_class, "()V", &[])?;

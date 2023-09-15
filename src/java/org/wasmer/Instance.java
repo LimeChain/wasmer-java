@@ -22,6 +22,7 @@ public class Instance {
     protected native Object[] nativeCallExportedFunction(long instancePointer, String exportName, Object[] arguments) throws RuntimeException;
     protected static native void nativeInitializeExportedFunctions(long instancePointer);
     protected static native void nativeInitializeExportedMemories(long instancePointer);
+    protected static native void nativeInitializeExportedGlobals(long instancePointer);
 
     /**
      * All WebAssembly exports.
@@ -47,6 +48,7 @@ public class Instance {
 
         nativeInitializeExportedFunctions(instancePointer);
         nativeInitializeExportedMemories(instancePointer);
+        nativeInitializeExportedGlobals(instancePointer);
     }
 
     protected Instance() {
