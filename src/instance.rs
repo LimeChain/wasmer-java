@@ -49,6 +49,10 @@ impl Instance {
             })
             .collect();
 
+        instance
+            .exports
+            .iter().for_each(|x| println!("{}-{:?}", x.0, x.1));
+
         Ok(Self {
             java_instance_object,
             instance,
