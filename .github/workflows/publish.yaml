@@ -1,5 +1,7 @@
 name: Publish to GitHub Packages
+
 on: push
+
 jobs:
   publish:
     strategy:
@@ -12,7 +14,7 @@ jobs:
       # in-progress jobs are canceled.
       fail-fast: true
 
-    runs-on: {{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
       packages: write
