@@ -185,33 +185,6 @@ jar.outputs.upToDateWhen { false }
 // We build the integration before running any test
 compileTestJava.dependsOn buildRust
 processResources.dependsOn copyAllArtifacts
-publishing {
-    publications {
-//        library(MavenPublication) {
-//            from components.java
-//        }
-        MyPublication(MavenPublication) {
-            from components.java
-            groupId "org.wasmer"
-            artifactId "wasmer-jni-" + inferWasmerJarAppendix()
-            version project.version
-
-            artifacts {
-                archives jar
-            }
-
-//            pom.withXml {
-//                MavenPublication root = asNode() as MavenPublication
-//                root.children().last() + pomConfig
-//            }
-        }
-    }
-    repositories {
-        maven {
-            url = layout.buildDirectory.dir("/tmp/wasm")
-        }
-    }
-}
 //task uploadToMaven {
 //    def pomConfig = {
 //        name "wasmer-jni"
