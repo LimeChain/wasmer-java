@@ -56,12 +56,14 @@ publishing {
     publications {
         maven(MavenPublication) {
             from components.java
+            artifacts {
+                archives jar
+            }
         }
     }
 }
 
 repositories {
-    jcenter()
     google()
     maven {
         url "https://plugins.gradle.org/m2/"
