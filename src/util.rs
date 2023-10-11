@@ -4,7 +4,7 @@ use jni::{
 };
 
 #[no_mangle]
-pub extern "system" fn Java_org_wasmer_Native_nativePanic(
+pub extern "system" fn Java_org_wasmer_Util_nativePanic(
     env: JNIEnv,
     _class: JClass,
     message: JString,

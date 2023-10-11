@@ -101,6 +101,4 @@ public class Native {
 
         return usingEmbedded;
     }
-
-    public static native void nativePanic(String message);
 }
