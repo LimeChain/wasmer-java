@@ -8,6 +8,7 @@ import java.util.Collections;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        Native.nativePanic("panicccccc");
         System.out.println("Reading wasm bytes");
         byte[] bytes = Files.readAllBytes(Paths.get("../../examples/runtime.wasm"));
         Module module = new Module(bytes);
