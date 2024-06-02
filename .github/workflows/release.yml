@@ -6,38 +6,8 @@ on:
       - '**'
 
 jobs:
-  create_pre_release:
-    name: Create pre-release
-
-    runs-on: ubuntu-latest
-
-    steps:
-      # The pre-release must be created only once, hence the split
-      # into multiple jobs with different `strategy`.
-      - name: Create a Github pre-release
-        id: create_pre_release
-        uses: elgohr/Github-Release-Action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: true
-
-      - name: Output `release_url` into a temporary file
-        run: echo "${{ steps.create_pre_release.outputs.upload_url }}" > release_url.txt
-
-      - name: Save the `release_url` temporary file
-        uses: actions/upload-artifact@v1
-        with:
-          name: release_url
-          path: release_url.txt
-
   publish_jar:
     name: Publish the JARs
-
-    needs: [create_pre_release]
 
     strategy:
       matrix:
