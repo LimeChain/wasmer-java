@@ -112,10 +112,6 @@ javadoc:
 package:
 	"./gradlew" --info jar
 
-# Publish the package artifact to a public repository
-publish:
-	"./gradlew" --info uploadToBintray
-
 # Run a specific example, with `make run-example EXAMPLE=Simple` for instance.
 run-example:
 	$(eval JAR := $(shell find ./build/libs/ -name "wasmer-jni-*.jar"))

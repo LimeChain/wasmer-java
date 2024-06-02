@@ -12,9 +12,6 @@
     <a href="https://github.com/wasmerio/wasmer-java/blob/master/LICENSE">
       <img src="https://img.shields.io/github/license/wasmerio/wasmer-java.svg" alt="License">
     </a>
-    <a href="https://bintray.com/wasmer/wasmer-jni/wasmer-jni">
-      <img src="https://img.shields.io/badge/bintray-package-f06" alt="Go Package">
-    </a> 
     <a href="https://wasmerio.github.io/wasmer-java/">
       <img src="https://img.shields.io/badge/documentation-API-ff0066.svg" alt="API Documentation">
     </a> 
@@ -45,10 +42,6 @@ Features:
 [Wasmer]: https://github.com/wasmerio/wasmer
 
 # Install
-
-The Wasmer package is published in [Bintray](https://bintray.com/) on [the
-`wasmer/wasmer-jni`
-repository](https://bintray.com/wasmer/wasmer-jni/wasmer-jni).
 
 The JAR files are named as follows:
 `wasmer-jni-$(architecture)-$(os)-$(version).jar`. Thus, to include

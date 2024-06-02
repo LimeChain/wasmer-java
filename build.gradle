@@ -2,7 +2,6 @@ plugins {
     id "java"
     // As Wasmer is a package, we need tools to build the JARs and so
     id "java-library"
-    id "com.jfrog.bintray" version "1.8.5"
 }
 
 allprojects {
