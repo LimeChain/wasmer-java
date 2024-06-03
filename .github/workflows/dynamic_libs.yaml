@@ -1,0 +1,31 @@
+name: Dynamic libs
+
+on: [push]
+
+jobs:
+  publish_dlibs:
+    name: Publish the dynamic libraries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - name: Create the dynamic libs
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          make build-rust-all-targets
+          ls
+
+      - name: Get release info
+        id: get_release_info
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
