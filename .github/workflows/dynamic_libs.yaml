@@ -32,7 +32,7 @@ jobs:
           - os_name: windows
             os: windows-latest
             target: x86_64-pc-windows-msvc
-            lib_name: libwasmer_jni.dll
+            lib_name: wasmer_jni.dll
             zip_name: windows.zip
 
     runs-on: ${{ matrix.platform.os }}
@@ -53,10 +53,6 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add ${{ matrix.platform.target }}
           cargo build --release --target=${{ matrix.platform.target }}
-          ls 
-          ls target
-          echo ---------------------------
-          ls target/${{ matrix.platform.target }}/release
 
       - name: Archive dynamic lib
         uses: thedoctor0/zip-release@0.7.5
