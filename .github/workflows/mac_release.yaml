@@ -1,13 +1,10 @@
 name: Release
 
-on:
-  push:
-    tags:
-      - '**'
+on: [push]
 
 jobs:
   publish_jar:
-    name: Publish the JARs
+    name: Publish the mac JAR
 
     strategy:
       matrix:
@@ -48,13 +45,6 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Create dynamic libs
-        id: dylibs
-        shell: bash
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          cargo build
 
       - name: Cache Cargo build
         uses: actions/cache@v1
