@@ -14,22 +14,22 @@ jobs:
           - os_name: macos-arm
             os: macos-latest
             target: aarch64-apple-darwin
-            lib_name: libwasmerjni.dylib
+            lib_name: libwasmer_jni.dylib
 
           - os_name: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            lib_name: libwasmerjni.so
+            lib_name: libwasmer_jni.so
 
           - os_name: windows
             os: windows-latest
             target: x86_64-pc-windows-msvc
-            lib_name: libwasmerjni.dll
+            lib_name: libwasmer_jni.dll
 
           - os_name: macos-x86_64
             os: macos-latest
             target: x86_64-apple-darwin
-            lib_name: libwasmerjni.dylib
+            lib_name: libwasmer_jni.dylib
 
     runs-on: ${{ matrix.platform.os }}
     steps:
