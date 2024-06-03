@@ -1,6 +1,9 @@
 name: Release
 
-on: []
+on:
+  push:
+    tags:
+      - '**'
 
 jobs:
   publish_jar:
@@ -8,8 +11,8 @@ jobs:
 
     strategy:
       matrix:
-        # The job runs on 3 different OS.
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # The job runs on 2 different OS.
+        os: [ubuntu-latest, windows-latest]
         # The job runs on different Java versions (LTS).
         java: [21]
       # As soon as one job fails in the matrix, all the other
@@ -45,13 +48,6 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Create dynamic libs
-        id: dylibs
-        shell: bash
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          cargo build
 
       - name: Cache Cargo build
         uses: actions/cache@v1
