@@ -12,8 +12,8 @@ allprojects {
 // This is needed for the Java plugin to make sure
 // the generated class files are compatible with
 // old versions of Java.
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 21
+targetCompatibility = 21
 
 sourceSets {
     main {

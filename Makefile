@@ -77,6 +77,7 @@ test: echo-arch build-headers build-rust test-rust build-java
 
 echo arch:
     echo $(build_arch)-$(build_os)
+
 # Run the Rust tests.
 test-rust: test-rust-$(build_arch)-$(build_os)
 
