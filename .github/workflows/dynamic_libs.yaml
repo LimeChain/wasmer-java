@@ -54,4 +54,4 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: target/release/${{ matrix.platform.libname }}
+          files: target/release/${{ matrix.platform.lib_name }}
