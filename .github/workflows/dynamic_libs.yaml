@@ -35,12 +35,6 @@ jobs:
             lib_name: libwasmer_jni.so
             zip_name: linux-aarch64.zip
 
-          - os_name: linux-i686
-            os: ubuntu-latest
-            target: i686-unknown-linux-gnu
-            lib_name: libwasmer_jni.so
-            zip_name: linux-i686.zip
-
           - os_name: windows
             os: windows-latest
             target: x86_64-pc-windows-msvc
