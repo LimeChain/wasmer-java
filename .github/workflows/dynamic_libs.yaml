@@ -31,7 +31,7 @@ jobs:
             target: x86_64-apple-darwin
             lib_name: libwasmer_jni.dylib
 
-    runs-on: ${{ matrix.platform.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v3
