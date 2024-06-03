@@ -75,7 +75,7 @@ build-headers:
 # Run the tests.
 test: echo-arch build-headers build-rust test-rust build-java
 
-echo arch:
+echo-arch:
     echo uname -m
 
 # Run the Rust tests.
