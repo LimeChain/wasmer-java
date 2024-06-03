@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          make build-rust-all-targets
+          cargo build
           ls
 
       - name: Get release info
