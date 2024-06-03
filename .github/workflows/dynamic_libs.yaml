@@ -65,7 +65,10 @@ jobs:
           export PATH="$HOME/.cargo/bin:$PATH"
           rustup target add ${{ matrix.platform.target }}
           cargo build --release --target=${{ matrix.platform.target }}
-          ls target/release/
+          ls 
+          ls target
+          echo ---------------------------
+          ls target/${{ matrix.platform.target }}/release
 
       - name: Archive dynamic lib
         uses: thedoctor0/zip-release@0.7.5
