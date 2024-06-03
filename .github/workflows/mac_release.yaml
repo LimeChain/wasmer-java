@@ -15,6 +15,7 @@ jobs:
         # The job runs on different Java versions (LTS).
         java: [21]
         architecture: [aarch64]
+        distribution: [temurin]
 
     runs-on: ${{ matrix.os }}
 
@@ -27,6 +28,7 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           architecture: ${{ matrix.architecture }}
+          distribution: ${{ matrix.distribution }}
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
