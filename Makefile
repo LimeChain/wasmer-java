@@ -73,7 +73,7 @@ build-headers:
 	"./gradlew" --info generateJniHeaders
 
 # Run the tests.
-test: echo-arch build-headers build-rust test-rust build-java
+test: build-headers build-rust test-rust build-java
 
 # Run the Rust tests.
 test-rust: test-rust-$(build_arch)-$(build_os)
