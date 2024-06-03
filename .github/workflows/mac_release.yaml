@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  publish_jar:
+    name: Publish the JARs
+
+    strategy:
+      matrix:
+        os: [macos-latest]
+        # The job runs on different Java versions (LTS).
+        java: [21]
+        architecture: [arm]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Java ${{ matrix.version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+          architecture: ${{ matrix.architecture }}
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache Cargo bin
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Create dynamic libs
+        id: dylibs
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cargo build
+
+      - name: Cache Cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run all the tests
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          make test
+
+      - name: Create the JAR
+        id: create_jar
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          make package
+
+      - name: Get release info
+        id: get_release_info
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload JAR as Github pre-release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          asset_path: ${{ steps.create_jar.outputs.path }}
+          asset_name: ${{ steps.create_jar.outputs.name }}
+          asset_content_type: application/java-archive

@@ -90,12 +90,3 @@ jobs:
           asset_path: ${{ steps.create_jar.outputs.path }}
           asset_name: ${{ steps.create_jar.outputs.name }}
           asset_content_type: application/java-archive
-
-      - name: Upload dylibs
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: ${{ steps.dylibs.outputs.path }}
-          asset_name: ${{ steps.dylibs.outputs.name }}
