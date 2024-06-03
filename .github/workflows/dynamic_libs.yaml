@@ -47,6 +47,7 @@ jobs:
         shell: bash
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
+          rustup target add ${{ matrix.platform.target }}
           cargo build --release --target=${{ matrix.platform.target }}
           ls
 
