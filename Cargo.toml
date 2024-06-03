@@ -2,7 +2,7 @@
 publish = false
 name = "wasmer-jni"
 version = "1.1.0"
-edition = "2023"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
