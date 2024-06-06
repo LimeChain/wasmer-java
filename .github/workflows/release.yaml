@@ -6,6 +6,9 @@ on:
       - '**'
 
 jobs:
+  upload_dynamic_libs:
+    uses: ./.github/workflows/dynamic_libs.yaml
+
   publish_jar:
     name: Publish the JARs
 

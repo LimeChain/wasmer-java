@@ -1,7 +1,6 @@
-name: Dynamic libs
+name: upload_dynamic_libs
 
-on:
-  workflow_dispatch: 
+on: [workflow_call]
 
 jobs:
   publish_dlibs:
