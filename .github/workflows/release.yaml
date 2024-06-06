@@ -33,7 +33,7 @@ jobs:
             lib_name: 'wasmer_jni.dll'
     uses: ./.github/workflows/dynamic_libs_reusable.yaml
     with:
-      platform_os: ${{ matrix.platform.os }}
+      platform_os: 'macos-latest'
       platform_target: ${{ matrix.platform.target }}
       platform_artifact: ${{ matrix.platform.artifact }}
       platform_lib_name: ${{ matrix.platform.lib_name }}
