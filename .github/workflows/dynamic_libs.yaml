@@ -1,9 +1,7 @@
 name: Dynamic libs
 
 on:
-  push:
-    branches:
-      - '**'
+  workflow_dispatch: 
 
 jobs:
   publish_dlibs:
