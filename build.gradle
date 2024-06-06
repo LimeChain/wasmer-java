@@ -65,10 +65,6 @@ jar {
         attributes("Implementation-Title": project.name,
                    "Implementation-Version": project.version)
     }
-
-    // The JAR name is defined as
-    // `${baseName}-${appendix}-${version}-${classifier}.${extension}`.
-    archiveAppendix = inferWasmerJarAppendix()
 }
 
 String inferWasmerJarAppendix() {

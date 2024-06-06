@@ -1,4 +1,8 @@
-name: Release
+# This workflow compiles the native wasmer_jni lib into various OS and architectures using dynamic_libs_reusable.yaml.
+# Then it builds and publishes the JAR based on the GITHUB_REF that calls the workflow. There are 2 options:
+# 1. The workflow is executed from a branch. In that case the JAR is available in the GitHub action as an artifact.
+# 2. The workflow is executed from a tag. In that case the JAR is published in the corresponding GitHub release.
+name: Build and publish
 
 on:
   push:
