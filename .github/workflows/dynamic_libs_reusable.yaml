@@ -34,7 +34,7 @@ jobs:
       - name: test
         shell: bash
         run: |
-          echo ${{ github.ref.type }}
+          echo ${GITHUB_REF_TYPE}
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
