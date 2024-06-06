@@ -9,13 +9,6 @@ jobs:
   publish_jar:
     name: Publish the JARs
 
-    strategy:
-      matrix:
-        architectures: [darwin-amd64, darwin-arm64, linux-amd64, win32-amd64]
-      # As soon as one job fails in the matrix, all the other
-      # in-progress jobs are canceled.
-      fail-fast: true
-
     runs-on: ubuntu-latest
 
     steps:
