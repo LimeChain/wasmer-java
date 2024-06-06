@@ -59,7 +59,7 @@ jobs:
       - name: Download wasmer_jni artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: '*(*-amd64|*-arm64)'
+          pattern: +(*-amd64|*-arm64)
           path: ./native-libs
 
       - name: Run all the tests
@@ -81,12 +81,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload JAR as Github pre-release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-          asset_path: ${{ steps.create_jar.outputs.path }}
-          asset_name: ${{ steps.create_jar.outputs.name }}
-          asset_content_type: application/java-archive
+#      - name: Upload JAR as Github pre-release asset
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+#          asset_path: ${{ steps.create_jar.outputs.path }}
+#          asset_name: ${{ steps.create_jar.outputs.name }}
+#          asset_content_type: application/java-archive
