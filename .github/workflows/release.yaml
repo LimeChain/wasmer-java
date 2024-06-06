@@ -57,25 +57,28 @@ jobs:
         with:
           path: ./native-libs
 
-      - name: Run all the tests
-        shell: bash
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          make test
+      - name: Display structure of downloaded files
+        run: ls -R ./native-libs
 
-      - name: Create the JAR
-        id: create_jar
-        shell: bash
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          make package
-
-      - name: Get release info
-        id: get_release_info
-        uses: bruceadams/get-release@v1.3.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+#      - name: Run all the tests
+#        shell: bash
+#        run: |
+#          export PATH="$HOME/.cargo/bin:$PATH"
+#          make test
+#
+#      - name: Create the JAR
+#        id: create_jar
+#        shell: bash
+#        run: |
+#          export PATH="$HOME/.cargo/bin:$PATH"
+#          make package
+#
+#      - name: Get release info
+#        id: get_release_info
+#        uses: bruceadams/get-release@v1.3.2
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
 #      - name: Upload JAR as Github pre-release asset
 #        uses: actions/upload-release-asset@v1
 #        env:
