@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group "org.wasmer"
-    version "0.3.0"
+    version "1.1.0"
 }
 
 // This is needed for the Java plugin to make sure
@@ -124,13 +124,24 @@ task buildRust(type: Exec) {
     commandLine "make", "build-rust"
 }
 
+//
 task copyAllArtifacts(type: Copy) {
     dependsOn buildRust
 
     description "Copy build artifacts to the `build/` directory."
 
-    from "artifacts"
-    include "**/*"
+    def sourceDir
+    def nativeLibsDir = file('native-libs')
+
+    if (nativeLibsDir.exists() && nativeLibsDir.list().size() > 0) {
+        sourceDir = 'native-libs'
+    } else {
+        sourceDir = 'artifacts'
+    }
+
+    from(sourceDir)
+    include '**/*'
+
     into "$buildDir/toArtifact/org/wasmer/native/"
 }
 
