@@ -26,7 +26,7 @@ on:
 jobs:
   publish_dlibs:
     name: Publish the dynamic libraries
-    runs-on: 'macos-latest'
+    runs-on: ${{ inputs.platform_os }}
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -42,12 +42,12 @@ jobs:
         shell: bash
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
-          rustup target add ${{ github.event.inputs.platform_target }}
-          cargo build --release --target=${{ github.event.inputs.platform_target }}
+          rustup target add ${{ inputs.platform_target }}
+          cargo build --release --target=${{ inputs.platform_target }}
 
       - name: Upload the dynamic libs
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.inputs.platform_artifact }}
-          path: ./target/${{ github.event.inputs.platform_target }}/release/${{ github.event.inputs.platform_lib_name }}
+          name: ${{ inputs.platform_artifact }}
+          path: ./target/${{ inputs.platform_target }}/release/${{ inputs.platform_lib_name }}
           retention-days: 1
