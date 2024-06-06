@@ -2,7 +2,7 @@ name: Dynamic libs
 
 on:
   push:
-    tags:
+    branches:
       - '**'
 
 jobs:
@@ -11,29 +11,25 @@ jobs:
     strategy:
       matrix:
         platform:
-          - os_name: macos-aarch64
-            os: macos-latest
+          - os: macos-latest
             target: aarch64-apple-darwin
+            arch: darwin-arm64
             lib_name: libwasmer_jni.dylib
-            zip_name: macos-aarch64.zip
 
-          - os_name: macos-x86_64
-            os: macos-latest
+          - os: macos-latest
             target: x86_64-apple-darwin
+            arch: darwin-amd64
             lib_name: libwasmer_jni.dylib
-            zip_name: macos-x86_64.zip
 
-          - os_name: linux-x86_64
-            os: ubuntu-latest
+          - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            arch: linux-amd64
             lib_name: libwasmer_jni.so
-            zip_name: linux-x86_64.zip
 
-          - os_name: windows
-            os: windows-latest
+          - os: windows-latest
             target: x86_64-pc-windows-msvc
+            arch: win32-amd64
             lib_name: wasmer_jni.dll
-            zip_name: windows.zip
 
     runs-on: ${{ matrix.platform.os }}
     steps:
@@ -54,14 +50,10 @@ jobs:
           rustup target add ${{ matrix.platform.target }}
           cargo build --release --target=${{ matrix.platform.target }}
 
-      - name: Archive dynamic lib
-        uses: thedoctor0/zip-release@0.7.5
+      - name: Upload the dynamic libs
+        uses: actions/upload-artifact@v4
         with:
-          type: 'zip'
-          filename: ${{ matrix.platform.zip_name }}
+          name: ${{ matrix.platform.arch }}
           path: ./target/${{ matrix.platform.target }}/release/${{ matrix.platform.lib_name }}
-
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ matrix.platform.zip_name }}
+          retention-days: 7
+          overwrite: true
