@@ -87,7 +87,6 @@ task buildRust(type: Exec) {
     commandLine "make", "build-rust"
 }
 
-//
 task copyAllArtifacts(type: Copy) {
     dependsOn buildRust
 

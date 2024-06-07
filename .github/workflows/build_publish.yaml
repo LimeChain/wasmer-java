@@ -82,7 +82,6 @@ jobs:
           key: cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup wasmer-jni artifacts dir
-        id: setip_dir
         shell: bash
         run: |
           random_string=$(uuidgen)
