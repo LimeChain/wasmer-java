@@ -12,35 +12,35 @@ on:
       - '*'    # Trigger on push to any tag
 
 jobs:
-  upload_dynamic_libs:
-    strategy:
-      matrix:
-        platform:
-          - os: 'macos-latest'
-            target: 'aarch64-apple-darwin'
-            artifact: 'darwin-arm64'
-            lib_name: 'libwasmer_jni.dylib'
-
-          - os: 'macos-latest'
-            target: 'x86_64-apple-darwin'
-            artifact: 'darwin-amd64'
-            lib_name: 'libwasmer_jni.dylib'
-
-          - os: 'ubuntu-latest'
-            target: 'x86_64-unknown-linux-gnu'
-            artifact: 'linux-amd64'
-            lib_name: 'libwasmer_jni.so'
-
-          - os: 'windows-latest'
-            target: 'x86_64-pc-windows-msvc'
-            artifact: 'win32-amd64'
-            lib_name: 'wasmer_jni.dll'
-    uses: ./.github/workflows/dynamic_libs_reusable.yaml
-    with:
-      platform_os: ${{ matrix.platform.os }}
-      platform_target: ${{ matrix.platform.target }}
-      platform_artifact: ${{ matrix.platform.artifact }}
-      platform_lib_name: ${{ matrix.platform.lib_name }}
+#  upload_dynamic_libs:
+#    strategy:
+#      matrix:
+#        platform:
+#          - os: 'macos-latest'
+#            target: 'aarch64-apple-darwin'
+#            artifact: 'darwin-arm64'
+#            lib_name: 'libwasmer_jni.dylib'
+#
+#          - os: 'macos-latest'
+#            target: 'x86_64-apple-darwin'
+#            artifact: 'darwin-amd64'
+#            lib_name: 'libwasmer_jni.dylib'
+#
+#          - os: 'ubuntu-latest'
+#            target: 'x86_64-unknown-linux-gnu'
+#            artifact: 'linux-amd64'
+#            lib_name: 'libwasmer_jni.so'
+#
+#          - os: 'windows-latest'
+#            target: 'x86_64-pc-windows-msvc'
+#            artifact: 'win32-amd64'
+#            lib_name: 'wasmer_jni.dll'
+#    uses: ./.github/workflows/dynamic_libs_reusable.yaml
+#    with:
+#      platform_os: ${{ matrix.platform.os }}
+#      platform_target: ${{ matrix.platform.target }}
+#      platform_artifact: ${{ matrix.platform.artifact }}
+#      platform_lib_name: ${{ matrix.platform.lib_name }}
 
   publish_jar:
     name: Publish the JARs
@@ -82,16 +82,17 @@ jobs:
           key: cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup wasmer-jni artifacts dir
+        id: setip_dir
         shell: bash
         run: |
           random_string=$(uuidgen)
-          echo "EXT_ARTIFACTS_DIR=$random_string" >> $GITHUB_ENV
           mkdir $random_string
+          echo "EXT_ARTIFACTS_DIR=$random_string" >> $GITHUB_ENV
 
       - name: Download wasmer_jni artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./${EXT_ARTIFACTS_DIR}
+          path: ./${{ env.EXT_ARTIFACTS_DIR }}
 
       - name: Display structure of downloaded files
         run: ls -R ./$EXT_ARTIFACTS_DIR
