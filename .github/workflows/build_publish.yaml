@@ -93,7 +93,7 @@ jobs:
           path: ./$EXT_ARTIFACTS_DIR
 
       - name: Display structure of downloaded files
-        run: ls -R ./native-libs
+        run: ls -R ./$EXT_ARTIFACTS_DIR
 
       - name: Run all the tests
         shell: bash
