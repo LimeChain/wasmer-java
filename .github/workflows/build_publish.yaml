@@ -45,7 +45,7 @@ jobs:
   publish_jar:
     name: Publish the JARs
     runs-on: ubuntu-latest
-    needs: [upload_dynamic_libs]
+#    needs: [upload_dynamic_libs]
 
     steps:
       - name: Check out code
