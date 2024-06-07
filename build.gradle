@@ -67,39 +67,6 @@ jar {
     }
 }
 
-String inferWasmerJarAppendix() {
-    def nativePlatform = new org.gradle.nativeplatform.platform.internal.DefaultNativePlatform("current")
-    def arch = nativePlatform.architecture
-    def os = nativePlatform.operatingSystem
-
-    def arch_name
-
-    switch (arch.getName()) {
-        case ["x86_64", "x64", "x86-64"]:
-            arch_name = "amd64"
-            break;
-        case ["arm64", "aarch64"]:
-            arch_name = "arm64"
-            break;
-        default:
-            throw new RuntimeException("Architecture " + arch.getName() + " is not supported.")
-    }
-
-    def os_name
-
-    if (os.isMacOsX()) {
-        os_name = "darwin"
-    } else if (os.isLinux()) {
-        os_name = "linux"
-    } else if (os.isWindows()) {
-        os_name = "windows"
-    } else {
-        throw new RuntimeException("Platform " + os.getName() + " is not supported.")
-    }
-
-    return arch_name + "-" + os_name
-}
-
 task generateJniHeaders(type: JavaCompile) {
     description "Generate the JNI header files (in `include/`)."
 
@@ -124,13 +91,16 @@ task buildRust(type: Exec) {
 task copyAllArtifacts(type: Copy) {
     dependsOn buildRust
 
-    description "Copy build artifacts to the `build/` directory."
+    description "Copy artifacts to the `build/` directory. If a non-empty directory exists at the value of " +
+            "'GH_ARTIFACTS_DIR' env variable it copies its contents, otherwise it copies from the artifacts folder."
 
     def sourceDir
-    def nativeLibsDir = file('native-libs')
 
-    if (nativeLibsDir.exists() && nativeLibsDir.list().size() > 0) {
-        sourceDir = 'native-libs'
+    def ghArtifactsDir = System.getenv(System.getenv('GH_ARTIFACTS_DIR'))
+    def ghArtifactsFile = file(ghArtifactsDir)
+
+    if (ghArtifactsFile.exists() && ghArtifactsFile.list().size() > 0) {
+        sourceDir = ghArtifactsDir
     } else {
         sourceDir = 'artifacts'
     }
@@ -156,7 +126,7 @@ tasks.withType(Test) {
 
 jar.doLast() {
     // Display specific “action outputs” for Github Actions.
-    def jar_name = project.archivesBaseName + "-" + inferWasmerJarAppendix() + "-" + project.version + ".jar"
+    def jar_name = project.archivesBaseName + "-" + project.version + ".jar"
     println(jar_name)
     println("::set-output name=path::./build/libs/" + jar_name)
     println("::set-output name=name::" + jar_name)

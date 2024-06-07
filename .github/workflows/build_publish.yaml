@@ -81,14 +81,16 @@ jobs:
           path: target
           key: cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Create native-libs dir
+      - name: Setup wasmer-jni artifacts dir
         shell: bash
-        run: mkdir ./native-libs
+        run: |
+          random_string=$(uuidgen)
+          export GH_ARTIFACTS_DIR = random_string
 
       - name: Download wasmer_jni artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./native-libs
+          path: ./$GH_ARTIFACTS_DIR
 
       - name: Display structure of downloaded files
         run: ls -R ./native-libs
