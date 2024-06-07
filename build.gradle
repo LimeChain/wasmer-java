@@ -92,18 +92,12 @@ task copyAllArtifacts(type: Copy) {
     dependsOn buildRust
 
     description "Copy artifacts to the `build/` directory. If a non-empty directory exists at the value of " +
-            "'GH_ARTIFACTS_DIR' env variable it copies its contents, otherwise it copies from the artifacts folder."
+            "'EXT_ARTIFACTS_DIR' env variable it copies its contents, otherwise it copies from the artifacts folder."
 
-    def sourceDir
-
-    def ghArtifactsDir = System.getenv(System.getenv('GH_ARTIFACTS_DIR'))
-    def ghArtifactsFile = file(ghArtifactsDir)
-
-    if (ghArtifactsFile.exists() && ghArtifactsFile.list().size() > 0) {
-        sourceDir = ghArtifactsDir
-    } else {
-        sourceDir = 'artifacts'
-    }
+    def extArtifactsDir = System.getenv('EXT_ARTIFACTS_DIR')
+    def sourceDir = extArtifactsDir != null && !extArtifactsDir.isBlank()
+            ? extArtifactsDir
+            : 'artifacts'
 
     from(sourceDir)
     include '**/*'

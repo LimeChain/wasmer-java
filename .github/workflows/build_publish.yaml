@@ -85,12 +85,12 @@ jobs:
         shell: bash
         run: |
           random_string=$(uuidgen)
-          export GH_ARTIFACTS_DIR=$random_string
+          export EXT_ARTIFACTS_DIR=$random_string
 
       - name: Download wasmer_jni artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./$GH_ARTIFACTS_DIR
+          path: ./$EXT_ARTIFACTS_DIR
 
       - name: Display structure of downloaded files
         run: ls -R ./native-libs
