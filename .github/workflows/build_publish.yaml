@@ -86,7 +86,7 @@ jobs:
         run: |
           random_string=$(uuidgen)
           echo "EXT_ARTIFACTS_DIR=$random_string" >> $GITHUB_ENV
-          mkdir random_string
+          mkdir $random_string
 
       - name: Download wasmer_jni artifacts
         uses: actions/download-artifact@v4
