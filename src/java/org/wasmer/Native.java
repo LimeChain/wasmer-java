@@ -28,13 +28,11 @@ public class Native {
             osName = "windows";
         } else if (osName.contains("mac os x")) {
             osName = "darwin";
-            String[] args = new String[] {"/bin/bash", "-c", "uname", "-p"};
+            String[] args = new String[] {"/bin/bash", "-c", "uname -m"};
             try {
                 Process proc = new ProcessBuilder(args).start();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                if (reader.readLine().equals("Darwin")) {
-                    return osName + "-arm64";
-                }
+                return osName + "-" + reader.readLine();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

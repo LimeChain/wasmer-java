@@ -33,7 +33,7 @@ jobs:
 
           - os: 'windows-latest'
             target: 'x86_64-pc-windows-msvc'
-            artifact: 'win32-amd64'
+            artifact: 'windows-amd64'
             lib_name: 'wasmer_jni.dll'
     uses: ./.github/workflows/dynamic_libs_reusable.yaml
     with:
