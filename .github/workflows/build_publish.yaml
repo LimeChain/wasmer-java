@@ -84,15 +84,15 @@ jobs:
       - name: Setup wasmer-jni artifacts dir
         shell: bash
         run: |
-          echo "EXT_ARTIFACTS_DIR=$(mktemp -d)" >> $GITHUB_ENV
+          echo "EXT_ARTIFACTS_DIR=$(echo mktemp -d)" >> $GITHUB_ENV
 
       - name: Download wasmer_jni artifacts
         uses: actions/download-artifact@v4
         with:
-          path: ./${{ env.EXT_ARTIFACTS_DIR }}
+          path: ${{ env.EXT_ARTIFACTS_DIR }}
 
       - name: Display structure of downloaded files
-        run: ls -R ./$EXT_ARTIFACTS_DIR
+        run: ls -R $EXT_ARTIFACTS_DIR
 
       - name: Run all the tests
         shell: bash
