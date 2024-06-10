@@ -5,7 +5,13 @@
 
 package org.wasmer;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.logging.Level;
@@ -19,7 +25,8 @@ public class Native {
         LOADED_EMBEDDED_LIBRARY = loadEmbeddedLibrary();
     }
 
-    private Native() {}
+    private Native() {
+    }
 
     public static String getCurrentPlatformIdentifier() {
         String osName = System.getProperty("os.name").toLowerCase();
@@ -28,13 +35,15 @@ public class Native {
             osName = "windows";
         } else if (osName.contains("mac os x")) {
             osName = "darwin";
-            String[] args = new String[] {"/bin/bash", "-c", "uname", "-p"};
+            String[] args = new String[]{"/bin/bash", "-c", "uname -m"};
             try {
                 Process proc = new ProcessBuilder(args).start();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                if (reader.readLine().equals("Darwin")) {
-                    return osName + "-arm64";
-                }
+                String arch = new BufferedReader(new InputStreamReader(proc.getInputStream()))
+                    .readLine().equals("x86_64")
+                    ? "amd64"
+                    : "arm64";
+
+                return osName + "-" + arch;
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -64,14 +73,14 @@ public class Native {
 
         URL nativeLibraryUrl = null;
         // loop through extensions, stopping after finding first one
-        for (String lib: libs) {
+        for (String lib : libs) {
             nativeLibraryUrl = Module.class.getResource(url + lib);
 
             if (nativeLibraryUrl != null) {
                 break;
             }
         }
-        
+
         if (nativeLibraryUrl != null) {
             // native library found within JAR, extract and load
             try {

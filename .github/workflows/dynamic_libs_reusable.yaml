@@ -1,0 +1,53 @@
+# This workflow cross compiles a rust library into a native based on a provided target.
+# The compiled library is then uploaded as a GitHub artifact.
+name: upload_dynamic_libs
+
+on:
+  workflow_call:
+    inputs:
+      platform_os:
+        description: Operating system that the runner will use.
+        type: string
+        required: true
+      platform_target:
+        description: The architecture that rust will compile the libs for.
+        type: string
+        required: true
+      platform_artifact:
+        description: The name of the artifact that will be uploaded.
+        type: string
+        required: true
+      platform_lib_name:
+        description: Name of the native library to be uploaded in the artifact.
+        type: string
+        required: true
+
+
+jobs:
+  publish_dlibs:
+    name: Publish the dynamic libraries
+    runs-on: ${{ inputs.platform_os }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          override: true
+
+      - name: Create the dynamic libs
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          rustup target add ${{ inputs.platform_target }}
+          cargo build --release --target=${{ inputs.platform_target }}
+
+      - name: Upload the dynamic libs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.platform_artifact }}
+          path: ./target/${{ inputs.platform_target }}/release/${{ inputs.platform_lib_name }}
+          retention-days: 1
