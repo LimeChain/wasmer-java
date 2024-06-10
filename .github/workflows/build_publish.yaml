@@ -84,9 +84,7 @@ jobs:
       - name: Setup wasmer-jni artifacts dir
         shell: bash
         run: |
-          random_string=$(uuidgen)
-          mkdir $random_string
-          echo "EXT_ARTIFACTS_DIR=$random_string" >> $GITHUB_ENV
+          echo "EXT_ARTIFACTS_DIR=$(mktemp -d)" >> $GITHUB_ENV
 
       - name: Download wasmer_jni artifacts
         uses: actions/download-artifact@v4
