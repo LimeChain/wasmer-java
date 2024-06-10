@@ -2,19 +2,18 @@ plugins {
     id "java"
     // As Wasmer is a package, we need tools to build the JARs and so
     id "java-library"
-    id "com.jfrog.bintray" version "1.8.5"
 }
 
 allprojects {
     group "org.wasmer"
-    version "0.3.0"
+    version "1.1.0"
 }
 
 // This is needed for the Java plugin to make sure
 // the generated class files are compatible with
 // old versions of Java.
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 21
+targetCompatibility = 21
 
 sourceSets {
     main {
@@ -66,43 +65,6 @@ jar {
         attributes("Implementation-Title": project.name,
                    "Implementation-Version": project.version)
     }
-
-    // The JAR name is defined as
-    // `${baseName}-${appendix}-${version}-${classifier}.${extension}`.
-    archiveAppendix = inferWasmerJarAppendix()
-}
-
-String inferWasmerJarAppendix() {
-    def nativePlatform = new org.gradle.nativeplatform.platform.internal.DefaultNativePlatform("current")
-    def arch = nativePlatform.architecture
-    def os = nativePlatform.operatingSystem
-
-    def arch_name
-
-    switch (arch.getName()) {
-        case ["x86_64", "x64", "x86-64"]:
-            arch_name = "amd64"
-            break;
-        case ["arm64", "aarch64"]:
-            arch_name = "arm64"
-            break;
-        default:
-            throw new RuntimeException("Architecture " + arch.getName() + " is not supported.")
-    }
-
-    def os_name
-
-    if (os.isMacOsX()) {
-        os_name = "darwin"
-    } else if (os.isLinux()) {
-        os_name = "linux"
-    } else if (os.isWindows()) {
-        os_name = "windows"
-    } else {
-        throw new RuntimeException("Platform " + os.getName() + " is not supported.")
-    }
-
-    return arch_name + "-" + os_name
 }
 
 task generateJniHeaders(type: JavaCompile) {
@@ -128,10 +90,17 @@ task buildRust(type: Exec) {
 task copyAllArtifacts(type: Copy) {
     dependsOn buildRust
 
-    description "Copy build artifacts to the `build/` directory."
+    description "Copy artifacts to the `build/` directory. If a non-empty directory exists at the value of " +
+            "'EXT_ARTIFACTS_DIR' env variable it copies its contents, otherwise it copies from the artifacts folder."
 
-    from "artifacts"
-    include "**/*"
+    def extArtifactsDir = System.getenv('EXT_ARTIFACTS_DIR')
+    def sourceDir = extArtifactsDir != null && !extArtifactsDir.isBlank()
+            ? extArtifactsDir
+            : 'artifacts'
+
+    from(sourceDir)
+    include '**/*'
+
     into "$buildDir/toArtifact/org/wasmer/native/"
 }
 
@@ -150,7 +119,7 @@ tasks.withType(Test) {
 
 jar.doLast() {
     // Display specific “action outputs” for Github Actions.
-    def jar_name = project.archivesBaseName + "-" + inferWasmerJarAppendix() + "-" + project.version + ".jar"
+    def jar_name = project.archivesBaseName + "-" + project.version + ".jar"
     println(jar_name)
     println("::set-output name=path::./build/libs/" + jar_name)
     println("::set-output name=name::" + jar_name)
