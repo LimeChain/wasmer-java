@@ -2,11 +2,13 @@ package org.wasmer;
 
 import java.util.List;
 
+// Used in Rust
+@SuppressWarnings("unused")
 public class Imports {
 
     static {
         if (!Native.LOADED_EMBEDDED_LIBRARY) {
-            System.loadLibrary("wasmer_jni");
+            System.loadLibrary(Native.DYNAMIC_LIBRARY_NAME_SHORT);
         }
     }
     private static native long nativeImportsInstantiate(List<ImportObject> imports, long modulePointer) throws RuntimeException;

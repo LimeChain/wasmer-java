@@ -6,10 +6,11 @@ import org.wasmer.exports.Function;
 import java.lang.ClassCastException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * `Exports` is a Java class that represents the set of WebAssembly exports.
- *
+ * <p>
  * Example:
  * <pre>{@code
  * Instance instance = new Instance(wasmBytes);
@@ -22,7 +23,10 @@ import java.util.Map;
  * Object[] result = ((Function) sum).apply(1, 2);
  * }</pre>
  */
+// Used in Rust
+@SuppressWarnings("unused")
 public class Exports {
+    private static final Logger logger = Logger.getLogger(Exports.class.getName());
 
     /**
      * Lambda expression for currying.
@@ -49,6 +53,7 @@ public class Exports {
      * @param name Name of the export to return.
      */
     public Export get(String name) {
+        logger.fine("Called get with arg: " + name);
         return this.inner.get(name);
     }
 
@@ -58,6 +63,7 @@ public class Exports {
      * @param name Name of the exported function.
      */
     public Function getFunction(String name) throws ClassCastException {
+        logger.fine("Called getFunction with arg: " + name);
         return (Function) this.inner.get(name);
     }
 
@@ -67,6 +73,7 @@ public class Exports {
      * @param name Name of the exported memory.
      */
     public Memory getMemory(String name) throws ClassCastException {
+        logger.fine("Called getMemory with arg: " + name);
         return (Memory) this.inner.get(name);
     }
 
@@ -76,6 +83,7 @@ public class Exports {
      * @param name Name of the exported global.
      */
     public Global getGlobal(String name) throws ClassCastException {
+        logger.fine("Called getGlobal with arg: " + name);
         return (Global) this.inner.get(name);
     }
 

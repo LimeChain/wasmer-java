@@ -2,21 +2,19 @@ package org.wasmer;
 
 /**
  * `Instance` is a Java class that represents a WebAssembly instance.
- *
+ * <p>
  * Example:
  * <pre>{@code
  * Instance instance = new Instance(wasmBytes);
  * }</pre>
  */
 public class Instance {
-    /**
-     * Native bindings.
-     */
     static {
         if (!Native.LOADED_EMBEDDED_LIBRARY) {
-            System.loadLibrary("wasmer_jni");
+            System.loadLibrary(Native.DYNAMIC_LIBRARY_NAME_SHORT);
         }
     }
+
     private native long nativeInstantiate(Instance self, byte[] moduleBytes) throws RuntimeException;
     private native void nativeDrop(long instancePointer);
     protected native Object[] nativeCallExportedFunction(long instancePointer, String exportName, Object[] arguments) throws RuntimeException;
@@ -60,9 +58,9 @@ public class Instance {
      */
     public void close() {
         // To avoid duplicate native dropping
-        if(this.instancePointer != 0l) {
+        if (this.instancePointer != 0L) {
             this.nativeDrop(this.instancePointer);
-            this.instancePointer = 0l;
+            this.instancePointer = 0L;
         }
     }
 

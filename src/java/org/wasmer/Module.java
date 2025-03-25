@@ -2,7 +2,7 @@ package org.wasmer;
 
 /**
  * `Module` is a Java class that represents a WebAssembly module.
- *
+ * <p>
  * Example:
  * <pre>{@code
  * boolean isValid = Module.validate(wasmBytes);
@@ -11,15 +11,15 @@ package org.wasmer;
  * Instance instance = module.instantiate();
  * }</pre>
  */
+// Used in Rust
+@SuppressWarnings("unused")
 public class Module {
-    /**
-     * Native bindings.
-     */
     static {
         if (!Native.LOADED_EMBEDDED_LIBRARY) {
-            System.loadLibrary("wasmer_jni");
+            System.loadLibrary(Native.DYNAMIC_LIBRARY_NAME_SHORT);
         }
     }
+
     private native long nativeModuleInstantiate(Module self, byte[] moduleBytes) throws RuntimeException;
     private native void nativeDrop(long modulePointer);
     private native long nativeInstantiate(long modulePointer, Instance instance, long importsPointer);
@@ -104,8 +104,7 @@ public class Module {
      */
     public static Module deserialize(byte[] serializedBytes) {
         Module module = new Module();
-        long modulePointer = Module.nativeDeserialize(module, serializedBytes);
-        module.modulePointer = modulePointer;
+        module.modulePointer = Module.nativeDeserialize(module, serializedBytes);
         return module;
     }
 }
