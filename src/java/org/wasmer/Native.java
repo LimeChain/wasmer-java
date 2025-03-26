@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 
 public class Native {
     public static final boolean LOADED_EMBEDDED_LIBRARY;
+    public static final String DYNAMIC_LIBRARY_NAME_SHORT = "wasmer_jni";
     private static final Logger logger = Logger.getLogger(Native.class.getName());
 
     static {
@@ -84,7 +85,7 @@ public class Native {
         if (nativeLibraryUrl != null) {
             // native library found within JAR, extract and load
             try {
-                final File libfile = File.createTempFile("wasmer_jni", ".lib");
+                final File libfile = File.createTempFile(DYNAMIC_LIBRARY_NAME_SHORT, ".lib");
                 libfile.deleteOnExit(); // just in case
 
                 final InputStream in = nativeLibraryUrl.openStream();
@@ -105,7 +106,6 @@ public class Native {
             } catch (IOException x) {
                 logger.log(Level.SEVERE, "Failed to load native library", x);
             }
-
         }
 
         return usingEmbedded;

@@ -3,13 +3,18 @@ package org.wasmer;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+// The fields producing these warnings are accessed in Rust and would
+// break Rust code if changed
+@SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class ImportObject {
+    private static final Logger logger = Logger.getLogger(ImportObject.class.getName());
     static {
         if (!Native.LOADED_EMBEDDED_LIBRARY) {
-            System.loadLibrary("wasmer_jni");
+            System.loadLibrary(Native.DYNAMIC_LIBRARY_NAME_SHORT);
         }
     }
 
@@ -17,6 +22,7 @@ public class ImportObject {
     private final String name;
 
     public ImportObject(String namespace, String name) {
+        logger.finer(String.format("Initializing import %s with namespace %s", name, namespace));
         this.name = name;
         this.namespace = namespace;
     }
@@ -30,20 +36,13 @@ public class ImportObject {
 
         public FuncImport(String namespace, String name, Function<List<Number>, List<Number>> function, List<Type> argTypes, List<Type> retTypes) {
             super(namespace, name);
+            logger.fine(String.format("Initialized function import %s with namespace %s", name, namespace));
             this.function = (long[] argv) -> {
-                List<Number> lret = function.apply(IntStream.range(0, argTypes.size()).mapToObj((int i) -> {
-                    switch (argTypes.get(i)) {
-                        case I32:
-                            return (int) argv[i];
-                        case I64:
-                            return argv[i];
-                        case F32:
-                            return Float.intBitsToFloat((int) argv[i]);
-                        case F64:
-                            return Double.longBitsToDouble(argv[i]);
-                        default:
-                            throw new RuntimeException("Unreachable (argument type)");
-                    }
+                List<Number> lret = function.apply(IntStream.range(0, argTypes.size()).mapToObj((int i) -> switch (argTypes.get(i)) {
+                    case I32 -> (int) argv[i];
+                    case I64 -> argv[i];
+                    case F32 -> Float.intBitsToFloat((int) argv[i]);
+                    case F64 -> Double.longBitsToDouble(argv[i]);
                 }).collect(Collectors.toList()));
                 long[] ret = argv.length >= retTypes.size() ? argv : new long[retTypes.size()];
                 for (int i = 0; i < retTypes.size(); i++)
@@ -77,6 +76,7 @@ public class ImportObject {
 
         public MemoryImport(String namespace, int minPages, Integer maxPages, boolean shared) {
             super(namespace, "memory");
+            logger.fine(String.format("Initialized memory import with namespace %s", namespace));
             this.minPages = minPages;
             this.maxPages = maxPages;
             this.shared = shared;
@@ -84,6 +84,7 @@ public class ImportObject {
 
         public MemoryImport(String namespace, int minPages, boolean shared) {
             super(namespace, "memory");
+            logger.fine(String.format("Initialized memory import with namespace %s", namespace));
             this.minPages = minPages;
             this.maxPages = null;
             this.shared = shared;

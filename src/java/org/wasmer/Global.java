@@ -2,10 +2,10 @@ package org.wasmer;
 
 import org.wasmer.exports.Export;
 
+// Used in Rust
 @SuppressWarnings("unused")
 public class Global implements Export {
     private String value;
-    //TODO: maybe find a way to use the Type enum for this type as well
     private String type;
 
     private Global() {

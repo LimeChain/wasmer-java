@@ -49,7 +49,7 @@ Wasmer JNI as a dependency, write for instance:
 
 ```gradle
 dependencies {
-    implementation "org.wasmer:wasmer-jni:1.1.0"
+    implementation "org.wasmer:wasmer-jni:1.1.1"
 }
 ```
 
@@ -302,7 +302,7 @@ To build the JAR package:
 $ make package
 ```
 
-This will generate the file `build/libs/wasmer-jni-1.1.0.jar`.
+This will generate the file `build/libs/wasmer-jni-1.1.1.jar`.
 
 ### Native `wasmer-jni` inclusion flow.
 
