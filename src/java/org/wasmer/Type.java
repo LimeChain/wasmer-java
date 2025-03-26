@@ -6,7 +6,7 @@ public enum Type {
     F32((byte)3),
     F64((byte)4);
 
-    byte i;
+    final byte i;
 
     Type(byte i) {
         this.i = i;

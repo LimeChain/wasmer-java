@@ -5,23 +5,29 @@
 
 package org.wasmer;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Native {
     public static final boolean LOADED_EMBEDDED_LIBRARY;
+    public static final String DYNAMIC_LIBRARY_NAME_SHORT = "wasmer_jni";
+    private static final Logger logger = Logger.getLogger(Native.class.getName());
 
     static {
         LOADED_EMBEDDED_LIBRARY = loadEmbeddedLibrary();
     }
 
-    private Native() {}
+    private Native() {
+    }
 
     public static String getCurrentPlatformIdentifier() {
         String osName = System.getProperty("os.name").toLowerCase();
@@ -30,10 +36,21 @@ public class Native {
             osName = "windows";
         } else if (osName.contains("mac os x")) {
             osName = "darwin";
+            String[] args = new String[]{"/bin/bash", "-c", "uname -m"};
+            try {
+                Process proc = new ProcessBuilder(args).start();
+                String arch = new BufferedReader(new InputStreamReader(proc.getInputStream()))
+                    .readLine().equals("x86_64")
+                    ? "amd64"
+                    : "arm64";
+
+                return osName + "-" + arch;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             osName = osName.replaceAll("\\s+", "_");
         }
-
         return osName + "-" + System.getProperty("os.arch");
     }
 
@@ -56,10 +73,9 @@ public class Native {
         url.append(getCurrentPlatformIdentifier()).append("/");
 
         URL nativeLibraryUrl = null;
-
         // loop through extensions, stopping after finding first one
-        for (String lib: libs) {
-            nativeLibraryUrl = Module.class.getResource(url.toString() + lib);
+        for (String lib : libs) {
+            nativeLibraryUrl = Module.class.getResource(url + lib);
 
             if (nativeLibraryUrl != null) {
                 break;
@@ -69,13 +85,13 @@ public class Native {
         if (nativeLibraryUrl != null) {
             // native library found within JAR, extract and load
             try {
-                final File libfile = File.createTempFile("wasmer_jni", ".lib");
+                final File libfile = File.createTempFile(DYNAMIC_LIBRARY_NAME_SHORT, ".lib");
                 libfile.deleteOnExit(); // just in case
 
                 final InputStream in = nativeLibraryUrl.openStream();
-                final OutputStream out = new BufferedOutputStream(new FileOutputStream(libfile));
+                final OutputStream out = new BufferedOutputStream(Files.newOutputStream(libfile.toPath()));
 
-                int len = 0;
+                int len;
                 byte[] buffer = new byte[8192];
 
                 while ((len = in.read(buffer)) > -1) {
@@ -88,9 +104,8 @@ public class Native {
 
                 usingEmbedded = true;
             } catch (IOException x) {
-                // mission failed, do nothing
+                logger.log(Level.SEVERE, "Failed to load native library", x);
             }
-
         }
 
         return usingEmbedded;

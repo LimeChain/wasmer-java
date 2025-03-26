@@ -47,6 +47,14 @@ JNIEXPORT void JNICALL Java_org_wasmer_Instance_nativeInitializeExportedFunction
 JNIEXPORT void JNICALL Java_org_wasmer_Instance_nativeInitializeExportedMemories
   (JNIEnv *, jclass, jlong);
 
+/*
+ * Class:     org_wasmer_Instance
+ * Method:    nativeInitializeExportedGlobals
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_org_wasmer_Instance_nativeInitializeExportedGlobals
+  (JNIEnv *, jclass, jlong);
+
 #ifdef __cplusplus
 }
 #endif

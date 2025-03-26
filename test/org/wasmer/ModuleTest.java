@@ -1,11 +1,9 @@
 package org.wasmer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.lang.RuntimeException;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,33 +11,33 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ModuleTest {
-    private byte[] getBytes(String filename) throws IOException,Exception {
+    private byte[] getBytes(String filename) throws Exception {
         Path modulePath = Paths.get(getClass().getClassLoader().getResource(filename).toURI());
         return Files.readAllBytes(modulePath);
     }
 
     @Test
-    void validate() throws IOException,Exception {
+    void validate() throws Exception {
         assertTrue(Module.validate(getBytes("tests.wasm")));
     }
 
     @Test
-    void invalidate() throws IOException,Exception {
+    void invalidate() throws Exception {
         assertFalse(Module.validate(getBytes("invalid.wasm")));
     }
 
     @Test
-    void compile() throws IOException,Exception {
+    void compile() throws Exception {
         assertTrue(new Module(getBytes("tests.wasm")) instanceof Module);
     }
 
     @Test
-    void failedToCompile() throws IOException,Exception {
+    void failedToCompile() {
         Exception exception = Assertions.assertThrows(RuntimeException.class, () -> {
             Module module = new Module(getBytes("invalid.wasm"));
         });
 
-        String expected = "Failed to compile the module: Validation error: invalid leading byte in type definition";
+        String expected = "Failed to compile the module: Validate(\"invalid leading byte in type definition";
         assertTrue(exception.getMessage().startsWith(expected));
     }
 
@@ -55,7 +53,7 @@ class ModuleTest {
 //    }
 
     @Test
-    void serialize() throws IOException,Exception {
+    void serialize() throws Exception {
         Module module = new Module(getBytes("tests.wasm"));
         assertTrue(module.serialize() instanceof byte[]);
         module.close();

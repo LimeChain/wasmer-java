@@ -13,11 +13,12 @@ else
 	endif
 
 	ARCH := $(shell uname -m)
-
 	ifeq ($(ARCH),x86_64)
 		build_arch = amd64
+	else ifeq ($(ARCH),arm64)
+		build_arch = arm64
 	else
-		$(error Architecture not supported yet)
+	    $(error Architecture not supported yet)
 	endif
 endif
 
@@ -30,7 +31,7 @@ build: build-headers build-rust build-java
 build-rust: build-rust-$(build_arch)-$(build_os)
 
 # Compile the Rust part.
-build-rust-all-targets: build-rust-amd64-darwin build-rust-amd64-linux build-rust-amd64-windows
+build-rust-all-targets: build-rust-amd64-darwin build-rust-arm64-darwin build-rust-amd64-linux build-rust-amd64-windows
 
 build-rust-amd64-darwin:
 	rustup target add x86_64-apple-darwin
@@ -39,6 +40,14 @@ build-rust-amd64-darwin:
 	cp target/x86_64-apple-darwin/release/libwasmer_jni.dylib artifacts/darwin-amd64
 	install_name_tool -id "@rpath/libwasmer_jni.dylib" ./artifacts/darwin-amd64/libwasmer_jni.dylib
 	test -h target/current || ln -s x86_64-apple-darwin/release target/current
+
+build-rust-arm64-darwin:
+	rustup target add aarch64-apple-darwin
+	cargo build --release --target=aarch64-apple-darwin
+	mkdir -p artifacts/darwin-arm64
+	cp target/aarch64-apple-darwin/release/libwasmer_jni.dylib artifacts/darwin-arm64
+	install_name_tool -id "@rpath/libwasmer_jni.dylib" ./artifacts/darwin-arm64/libwasmer_jni.dylib
+	test -h target/current || ln -s aarch64-apple-darwin/release target/current
 
 build-rust-amd64-linux:
 	rustup target add x86_64-unknown-linux-gnu
@@ -72,6 +81,9 @@ test-rust: test-rust-$(build_arch)-$(build_os)
 test-rust-amd64-darwin:
 	cargo test --lib --release --target=x86_64-apple-darwin
 
+test-rust-arm64-darwin:
+	cargo test --lib --release --target=aarch64-apple-darwin
+
 test-rust-amd64-linux:
 	cargo test --lib --release --target=x86_64-unknown-linux-gnu
 
@@ -85,7 +97,7 @@ test-java:
 # Test the examples.
 test-examples:
 	@for example in $(shell find examples -name "*Example.java") ; do \
-		example=$${example#examples/}; \
+		example=$${example%examples/}; \
 		example=$${example%Example.java}; \
 		echo "Testing $${example}"; \
 		make run-example EXAMPLE=$${example}; \
@@ -100,10 +112,6 @@ javadoc:
 package:
 	"./gradlew" --info jar
 
-# Publish the package artifact to a public repository
-publish:
-	"./gradlew" --info uploadToBintray
-
 # Run a specific example, with `make run-example EXAMPLE=Simple` for instance.
 run-example:
 	$(eval JAR := $(shell find ./build/libs/ -name "wasmer-jni-*.jar"))
@@ -111,6 +119,13 @@ run-example:
 		javac -classpath "../${JAR}" ${EXAMPLE}Example.java; \
 		java -Djava.library.path=$(CURDIR)/artifacts/$(build_os)-$(build_arch) -classpath ".:../${JAR}" -enableassertions ${EXAMPLE}Example
 
+# Runs the main class, cd to java is necessary because java.org.wasmer is a "Prohibited package name"
+run-main:
+	$(eval JAR := $(shell find ./build/libs/ -name "wasmer-jni-*.jar"))
+	@cd src; \
+		javac -sourcepath ./java -classpath "./${JAR}" java/org/wasmer/Main.java; \
+		cd java && java -Djava.library.path=$(CURDIR)/artifacts/$(build_os)-$(build_arch) -classpath ".:../${JAR}" org/wasmer/Main; \
+		find org -type f -name "*.class" -delete
 # Clean
 clean:
 	cargo clean

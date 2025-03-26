@@ -1,10 +1,8 @@
 package org.wasmer;
 
-import java.util.Collections;
-
 /**
  * `Module` is a Java class that represents a WebAssembly module.
- *
+ * <p>
  * Example:
  * <pre>{@code
  * boolean isValid = Module.validate(wasmBytes);
@@ -13,15 +11,15 @@ import java.util.Collections;
  * Instance instance = module.instantiate();
  * }</pre>
  */
+// Used in Rust
+@SuppressWarnings("unused")
 public class Module {
-    /**
-     * Native bindings.
-     */
     static {
         if (!Native.LOADED_EMBEDDED_LIBRARY) {
-            System.loadLibrary("wasmer_jni");
+            System.loadLibrary(Native.DYNAMIC_LIBRARY_NAME_SHORT);
         }
     }
+
     private native long nativeModuleInstantiate(Module self, byte[] moduleBytes) throws RuntimeException;
     private native void nativeDrop(long modulePointer);
     private native long nativeInstantiate(long modulePointer, Instance instance, long importsPointer);
@@ -49,8 +47,7 @@ public class Module {
      * @param moduleBytes WebAssembly bytes.
      */
     public Module(byte[] moduleBytes) throws RuntimeException {
-        long modulePointer = this.nativeModuleInstantiate(this, moduleBytes);
-        this.modulePointer = modulePointer;
+        this.modulePointer = this.nativeModuleInstantiate(this, moduleBytes);
     }
 
     private Module() {}
@@ -60,9 +57,9 @@ public class Module {
      */
     public void close() {
         // To avoid duplicate native dropping
-        if (this.modulePointer != 0l) {
+        if (this.modulePointer != 0L) {
             this.nativeDrop(this.modulePointer);
-            this.modulePointer = 0l;
+            this.modulePointer = 0L;
         }
     }
 
@@ -74,9 +71,6 @@ public class Module {
         this.close();
     }
 
-    public Instance instantiate() {
-        return instantiate(Imports.from(Collections.emptyList(), null, this));
-    }
     /**
      * Create an instance object based on a module object.
      *
@@ -88,8 +82,9 @@ public class Module {
         long instancePointer = this.nativeInstantiate(this.modulePointer, instance, imports.importsPointer);
         instance.instancePointer = instancePointer;
 
-        instance.nativeInitializeExportedFunctions(instancePointer);
-        instance.nativeInitializeExportedMemories(instancePointer);
+        Instance.nativeInitializeExportedFunctions(instancePointer);
+        Instance.nativeInitializeExportedMemories(instancePointer);
+        Instance.nativeInitializeExportedGlobals(instancePointer);
         return instance;
     }
 
@@ -109,8 +104,7 @@ public class Module {
      */
     public static Module deserialize(byte[] serializedBytes) {
         Module module = new Module();
-        long modulePointer = Module.nativeDeserialize(module, serializedBytes);
-        module.modulePointer = modulePointer;
+        module.modulePointer = Module.nativeDeserialize(module, serializedBytes);
         return module;
     }
 }
